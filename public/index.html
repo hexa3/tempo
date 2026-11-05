@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tempo — AI study planner</title>
+  <meta name="description" content="Tempo turns a messy week into a realistic study plan that adapts to how you actually work.">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to plan</a>
+  <header class="topbar">
+    <div class="brand"><img src="icon.svg" alt="" width="28" height="28"><span>Tempo</span></div>
+    <label class="engine" id="aiPill" title="Which AI understands your text and answers the coach"><span class="dot" aria-hidden="true"></span><span class="sr-only">AI engine</span><select id="aiEngine" aria-label="AI engine"></select></label>
+    <div class="topbar-actions">
+      <label class="sr-only" for="profileSelect">Student profile</label>
+      <select id="profileSelect" aria-label="Student profile"></select>
+      <button class="icon-btn" id="btnA11y" aria-label="Accessibility options" title="Accessibility">Aa</button>
+      <button class="icon-btn" id="btnSettings" aria-label="Settings" title="My time &amp; settings">⚙</button>
+      <button class="icon-btn" id="btnAbout" aria-label="About, privacy and AI limits" title="Privacy &amp; AI limits">?</button>
+    </div>
+  </header>
+
+  <main id="main" class="layout">
+    <section class="col-left">
+      <article class="card" id="tellCard" aria-labelledby="tellH">
+        <h2 id="tellH">Tell Tempo about your week</h2>
+        <p class="muted small">Type it like you'd text a friend. Tempo pulls out the tasks; <strong>you check them before anything is added.</strong></p>
+        <div class="input-wrap">
+          <textarea id="tellInput" rows="5" placeholder="e.g. Chem test Thursday, English essay due Monday (about 3 hours, it's hard). Robotics Tue and Thu 4-6pm. I only have 2 hours a day."></textarea>
+          <button class="icon-btn mic" id="btnMic" aria-label="Speak instead of typing" title="Speak" hidden>🎤</button>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="btnParse">Understand this</button>
+          <button class="btn ghost small" id="btnExample">Try an example</button>
+        </div>
+        <div id="review" aria-live="polite"></div>
+      </article>
+
+      <article class="card" aria-labelledby="tasksH">
+        <div class="card-head"><h2 id="tasksH">Tasks &amp; exams</h2><button class="btn ghost small" id="btnAddTask">+ Add</button></div>
+        <ul id="taskList" class="list"></ul>
+      </article>
+
+      <article class="card" aria-labelledby="actH">
+        <div class="card-head"><h2 id="actH">Activities</h2><button class="btn ghost small" id="btnAddAct">+ Add</button></div>
+        <ul id="actList" class="list"></ul>
+      </article>
+    </section>
+
+    <section class="col-main">
+      <article class="card today" id="todayCard" aria-labelledby="todayH"></article>
+      <div id="alerts" aria-live="polite"></div>
+      <article class="card" aria-labelledby="weekH">
+        <div class="card-head">
+          <h2 id="weekH">Your plan</h2>
+          <div class="row tight">
+            <button class="icon-btn" id="weekPrev" aria-label="Previous week">‹</button>
+            <span id="weekLabel" class="muted small"></span>
+            <button class="icon-btn" id="weekNext" aria-label="Next week">›</button>
+          </div>
+        </div>
+        <div id="week" class="week" role="list"></div>
+        <p class="muted small legend">Tap a session to see <strong>why</strong> it's there, or to mark it done. Grey = your activities.</p>
+      </article>
+
+      <article class="card" id="coachCard" aria-labelledby="coachH">
+        <h2 id="coachH">Ask the coach</h2>
+        <div id="chat" class="chat" aria-live="polite"></div>
+        <form id="coachForm" class="row">
+          <label class="sr-only" for="coachInput">Ask a question about your plan</label>
+          <input id="coachInput" placeholder="What should I do first? Why is Chem on Tuesday?" autocomplete="off">
+          <button class="btn primary" type="submit">Ask</button>
+        </form>
+        <div class="chips" id="coachChips"></div>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="dlg"><form method="dialog" id="dlgBody"></form></dialog>
+
+  <script src="js/dates.js"></script>
+  <script src="js/predictor.js"></script>
+  <script src="js/scheduler.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/coach.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

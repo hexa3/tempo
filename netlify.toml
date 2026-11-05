@@ -1,0 +1,14 @@
+# Netlify: static app from /public, AI endpoints as a serverless function.
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+  command = "npm test"
+
+[functions]
+  node_bundler = "nft"
+  included_files = ["prompts/**"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200

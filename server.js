@@ -129,8 +129,12 @@ async function askOpenAICompatible(p, { system, user, schema, maxTokens }) {
   if (res.status === 400 && body.reasoning_effort) { delete body.reasoning_effort; res = await call(body); } // provider doesn't know the option
   if (res.status === 400 && schema) { delete body.response_format; res = await call(body); } // some models lack JSON mode
   if (!res.ok) {
-    const detail = (await res.text()).slice(0, 200);
-    throw err(`${p.name} error ${res.status}${res.status === 429 ? ' (free-tier limit, wait a minute)' : ''}: ${detail}`, res.status === 429 ? 429 : 502);
+    const raw = (await res.text()).slice(0, 400);
+    console.error(`[${new Date().toISOString()}] ${p.name} ${res.status}: ${raw.slice(0, 200)}`); // provider message only, never student text
+    if (res.status === 429) throw err(`${p.name}'s free limit was reached. Wait about a minute and try again`, 429);
+    if (res.status === 401 || res.status === 403) throw err(`${p.name} rejected the API key on the server`, 502);
+    let msg = ''; try { msg = JSON.parse(raw).error.message.replace(/org_[a-z0-9]+/gi, 'your account'); } catch { /* not JSON */ }
+    throw err(`${p.name} error ${res.status}${msg ? ': ' + msg.slice(0, 160) : ''}`, 502);
   }
   const j = await res.json();
   const choice = j.choices && j.choices[0];

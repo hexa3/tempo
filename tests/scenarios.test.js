@@ -251,3 +251,14 @@ test('A task the AI drops is recovered by Tempo\'s own rules (and nothing is add
   const good = { engine: 'Groq', items: [{ kind: 'assignment', title: 'Physics lab report', subject: 'Physics', dueText: 'tomorrow', due: '2026-11-06', estText: 'about 1 hour', estMin: 60, assumed: [] }], commitments: act, changes: [{ itemId: 'chem1', due: '2026-11-11' }] };
   assert.equal(Parser.sanitize(good, '2026-11-05', existing, src).items.length, 1);
 });
+
+test('An update the AI forgets ("chem test moved…") is recovered from Tempo\'s rules', () => {
+  // Found on the live site: one Groq run returned the lab report and basketball but no change for the chem test.
+  const existing = [{ id: 'chem1', title: 'Chemistry test (bonding)', subject: 'Chemistry', kind: 'exam', due: '2026-11-08' }];
+  const src = 'physics lab report due tomorrow about 1 hour, chem test moved to next wednesday, basketball saturday 10 to 12';
+  const ai = { engine: 'Groq', items: [{ kind: 'assignment', title: 'Physics lab report', subject: 'Physics', dueText: 'tomorrow', due: '2026-11-06', estText: 'about 1 hour', estMin: 60, assumed: [] }],
+    commitments: [{ title: 'Basketball', days: [6], start: '10:00', end: '12:00', assumed: [] }], changes: [] };
+  const r = Parser.sanitize(ai, '2026-11-05', existing, src);
+  assert.deepEqual(r.changes.map((c) => [c.itemId, c.due]), [['chem1', '2026-11-11']]);
+  assert.equal(r.items.length, 1);
+});

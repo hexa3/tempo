@@ -331,6 +331,11 @@
         if (!clean.assumed.includes('title')) clean.assumed.push('title');
         out.items.push(clean); covered.add(key(it));
       }
+      // ...and the same for updates ("chem test moved to Wednesday") the AI didn't report
+      for (const c of rules.changes || []) {
+        if (!c || !ids.has(c.itemId) || (r.changes || []).some((x) => x && x.itemId === c.itemId)) continue;
+        (r.changes = r.changes || []).push({ ...c });
+      }
     }
     // "chem test got moved to Wednesday": a small model often lists this as a NEW exam.
     // If the student used a moving word and the item matches one they already have, make it a date change.

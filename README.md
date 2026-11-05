@@ -42,7 +42,7 @@ Then just `npm start`. The startup log shows a ✓ or ✗ next to each engine, a
 Open http://localhost:3000 (home page) or http://localhost:3000/app.html (the planner) in Chrome, Firefox, Safari or Edge, on a laptop or a phone on the same Wi-Fi. Demo profiles load automatically.
 
 ```bash
-npm test                         # 21 automated scenario tests (judge scenarios + bugs we fixed)
+npm test                         # 22 automated scenario tests (judge scenarios + bugs we fixed)
 ```
 
 ## Online version (Netlify)

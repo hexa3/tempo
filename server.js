@@ -17,6 +17,15 @@ const path = require('path');
 const os = require('os');
 const { Anthropic, BadRequestError } = require('@anthropic-ai/sdk');
 
+// Load .env (KEY=value lines) without extra packages, so `npm start` works on any Node version.
+// Variables already set in the environment win.
+try {
+  for (const line of fs.readFileSync(path.join(__dirname, '.env'), 'utf8').split(/\r?\n/)) {
+    const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
+    if (m && !line.trim().startsWith('#') && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^(['"])(.*)\1$/, '$2');
+  }
+} catch { /* no .env file: fine */ }
+
 const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC = path.join(__dirname, 'public');
 const PROMPTS = {

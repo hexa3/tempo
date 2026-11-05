@@ -333,8 +333,11 @@
       }
       // ...and the same for updates ("chem test moved to Wednesday") the AI didn't report
       for (const c of rules.changes || []) {
-        if (!c || !ids.has(c.itemId) || (r.changes || []).some((x) => x && x.itemId === c.itemId)) continue;
-        (r.changes = r.changes || []).push({ ...c });
+        if (!c || !ids.has(c.itemId)) continue;
+        const mine = (r.changes || []).find((x) => x && x.itemId === c.itemId);
+        if (!mine) { (r.changes = r.changes || []).push({ ...c }); continue; }
+        // the AI reported the update but with an unusable date ("next wednesday", null…): use the rules' date
+        if (c.due && !D.isDate(mine.due) && !mine.remove && !mine.done) mine.due = c.due;
       }
     }
     // "chem test got moved to Wednesday": a small model often lists this as a NEW exam.

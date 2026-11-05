@@ -261,4 +261,9 @@ test('An update the AI forgets ("chem test moved…") is recovered from Tempo\'s
   const r = Parser.sanitize(ai, '2026-11-05', existing, src);
   assert.deepEqual(r.changes.map((c) => [c.itemId, c.due]), [['chem1', '2026-11-11']]);
   assert.equal(r.items.length, 1);
+  // the AI reports the change but with an unusable date → the rules' date is used
+  for (const bad of [null, 'next wednesday', '2026-11-31']) {
+    const r2 = Parser.sanitize({ ...ai, changes: [{ itemId: 'chem1', due: bad, estMin: null, remove: false, done: false }] }, '2026-11-05', existing, src);
+    assert.deepEqual(r2.changes.map((c) => [c.itemId, c.due]), [['chem1', '2026-11-11']], String(bad));
+  }
 });

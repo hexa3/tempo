@@ -234,3 +234,20 @@ test('"Chem test moved to next Wednesday" becomes a date change even when the AI
   const r2 = Parser.sanitize(ai, '2026-11-05', existing, 'physics lab report due tomorrow, chem test next wednesday');
   assert.equal(r2.items.length, 2);
 });
+
+test('A task the AI drops is recovered by Tempo\'s own rules (and nothing is added when the AI got it right)', () => {
+  // Found on the live site: gpt-oss-120b once filed a NEW lab report under "changes" with a made-up id,
+  // so it was rejected and the task vanished.
+  const existing = [{ id: 'chem1', title: 'Chemistry test (bonding)', subject: 'Chemistry', kind: 'exam', due: '2026-11-08' }];
+  const src = 'physics lab report due tomorrow about 1 hour, chem test moved to next wednesday, basketball saturday 10 to 12';
+  const act = [{ title: 'Basketball', days: [6], start: '10:00', end: '12:00', assumed: [] }];
+  const bad = { engine: 'Groq', items: [], commitments: act, changes: [{ itemId: 'chem1', due: '2026-11-11' }, { itemId: 'new1', due: '2026-11-06', estMin: 60 }] };
+  const r = Parser.sanitize(bad, '2026-11-05', existing, src);
+  assert.equal(r.items.length, 1);
+  assert.equal(r.items[0].subject, 'Physics');
+  assert.equal(r.items[0].due, '2026-11-06');
+  assert.ok(r.items[0].fixed);                              // the student is told the AI missed it
+  assert.deepEqual(r.changes, [{ itemId: 'chem1', due: '2026-11-11' }]);
+  const good = { engine: 'Groq', items: [{ kind: 'assignment', title: 'Physics lab report', subject: 'Physics', dueText: 'tomorrow', due: '2026-11-06', estText: 'about 1 hour', estMin: 60, assumed: [] }], commitments: act, changes: [{ itemId: 'chem1', due: '2026-11-11' }] };
+  assert.equal(Parser.sanitize(good, '2026-11-05', existing, src).items.length, 1);
+});

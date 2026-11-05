@@ -307,6 +307,31 @@
       }
     }
     out.items.forEach((i) => { delete i._est; delete i._dueText; });
+    // Safety net: an AI sometimes drops a task (e.g. a model filed a new task under "changes" with a
+    // made-up id). Tempo's own rules read the same text; any task they find that the AI result doesn't
+    // cover is added back, marked so the student checks it.
+    if (source && out.engine !== 'offline rules') {
+      const rules = parseRules(source, today, existing);
+      const key = (x) => String(x.subject || '').toLowerCase() + '|' + x.kind;
+      const covered = new Set(out.items.map(key));
+      (r.changes || []).forEach((c) => { const e = c && existing.find((x) => x.id === c.itemId); if (e) covered.add(key(e)); });
+      const actWords = out.commitments.map((c) => c.title.toLowerCase().split(/\W+/)[0]).filter((w) => w.length > 2);
+      const words = (t) => String(t || '').toLowerCase().split(/\W+/).filter((w) => w.length > 3 && !/^(test|exam|quiz|due|homework|assignment)$/.test(w));
+      for (const it of rules.items || []) {
+        if (!it.subject || it.subject === 'General' || covered.has(key(it))) continue;
+        // same task under another name or subject ("Math worksheet" filed as General): don't add it twice,
+        // but borrow the rules' subject so the task gets the right colour and history
+        const same = out.items.find((x) => x.kind === it.kind && (x.title.toLowerCase().includes(it.subject.toLowerCase()) || words(x.title).some((w) => words(it.title).includes(w))));
+        if (same) { if (same.subject === 'General') same.subject = it.subject; covered.add(key(it)); continue; }
+        if (existing.some((e) => key(e) === key(it))) continue; // could be an update to an existing task: leave it to the student
+        if (actWords.some((w) => it.title.toLowerCase().includes(w))) continue;
+        const clean = sanitize({ items: [it], engine: 'offline rules' }, today, [], source).items[0];
+        if (!clean) continue;
+        clean.fixed = 'the AI missed this one; Tempo\'s own rules found it';
+        if (!clean.assumed.includes('title')) clean.assumed.push('title');
+        out.items.push(clean); covered.add(key(it));
+      }
+    }
     // "chem test got moved to Wednesday": a small model often lists this as a NEW exam.
     // If the student used a moving word and the item matches one they already have, make it a date change.
     if (source && /\b(mov(ed|ing|e)|postponed?|pushed|reschedul\w*|delayed|changed|now (on|due))\b/i.test(source)) {

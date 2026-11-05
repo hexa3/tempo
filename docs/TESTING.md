@@ -1,6 +1,6 @@
 # Testing & improvement
 
-Run `npm test`. There are 20 automated tests covering the judges' scenarios plus every bug below. Every plan is also checked against *invariants*: no day over budget, no overlap with activities, nothing outside the sleep-protecting window, nothing after its deadline.
+Run `npm test`. There are 21 automated tests covering the judges' scenarios plus every bug below. Every plan is also checked against *invariants*: no day over budget, no overlap with activities, nothing outside the sleep-protecting window, nothing after its deadline.
 
 ## Problem → Test → Change → Result
 
@@ -49,6 +49,11 @@ Use **one** of these in the presentation and keep the others for Q&A.
 - **Problem:** in an end-to-end test of the redesigned app with the local model, *"chem test moved to next wednesday"* came back as a **new** exam. The duplicate check caught it and left it unticked, but the student would have had to fix it by hand.
 - **Change:** if the student uses a moving word (moved, postponed, rescheduled…) and the AI's item matches a task they already have (same subject and type), Tempo turns it into a date change.
 - **Result:** the review now shows *"Chemistry test (bonding): move to Wed 11 Nov"*. Locked in by the test *"Chem test moved to next Wednesday becomes a date change…"*. Without a moving word, a second chemistry exam is still treated as new.
+
+### 9. A task vanished on the live site
+- **Problem:** testing the hosted version with Groq (gpt-oss-120b), *"physics lab report due tomorrow…, chem test moved to next wednesday…"* sometimes lost the lab report. In 1 of 3 runs the model filed the new task under "changes" with a made-up id, Tempo correctly rejected the change, and the task disappeared without a word.
+- **Change:** (1) the prompt now says changes may only use ids from the existing list; (2) a safety net: Tempo's rule parser reads the same text, and any task the AI result doesn't cover is added back with a note *"the AI missed this one"*. Matching uses titles as well as subjects, so a "Math worksheet" the AI filed under "General" isn't added twice (Tempo also fills in the subject).
+- **Result:** test *"A task the AI drops is recovered…"* passes, and a correct AI result gets no extras. **Lesson:** combining the AI with a predictable rule engine beats either one alone.
 
 ## User testing (do this with real students; it's the strongest evidence you can have)
 

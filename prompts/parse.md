@@ -18,7 +18,7 @@ Extract:
   - days: weekdays as numbers from the CALENDAR line (Sun=0, Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6) for repeating activities, and date = null. For a one-off, days = [] and date = YYYY-MM-DD only (no time).
   - start / end: 24-hour "HH:MM". Times between 1 and 8 with no am/pm almost always mean pm for after-school activities.
 - availability: only if the student says how much time they have to study. text = their exact words ("I only have 2 hours on weekdays"); dailyMinutes / weekendMinutes in minutes, null for anything they did not mention.
-- changes: when the student updates something that already exists (an exam moved, a task finished or cancelled, a new estimate), refer to it by its existing id. Do not create a duplicate item.
+- changes: when the student updates something that already exists (an exam moved, a task finished or cancelled, a new estimate), refer to it by its existing id. Do not create a duplicate item. Only use ids that appear in "Existing tasks". Anything new (even if it is mentioned in the same sentence as a change) goes in items, never in changes.
 - questions: short, friendly questions for anything you could not determine.
 
 Rules that matter more than completeness:

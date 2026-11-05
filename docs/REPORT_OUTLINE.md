@@ -5,7 +5,7 @@
 3. **Target user** (½ page): a persona with needs. Show how each need → a design decision (e.g. "won't fill forms" → free-text input; "no reliable internet" → offline mode).
 4. **Solution overview** (1 page): main user journey, with 3–4 screenshots.
 5. **AI components** (1.5 pages):
-   - Language understanding: two switchable LLMs (local Qwen 2.5 3B via Ollama, cloud Llama 3.3 70B via Groq) + schema-constrained JSON + sanitizer + rule-based fallback. Include the E8 comparison table
+   - Language understanding: two switchable LLMs (local Qwen 2.5 3B via Ollama, cloud gpt-oss-120b via Groq) + schema-constrained JSON + sanitizer + rule-based fallback. Include the E8 comparison table
    - Workload prediction: per-subject multiplier, Bayesian shrinkage, range/confidence (include the formula)
    - Planning: chunking, exam spacing, buffers, EDF + slack test, interleaving, infeasibility options
    - Coach: grounded on a plan summary, with boundaries

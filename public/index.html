@@ -142,7 +142,7 @@
         <article class="ai-card">
           <p class="tag-k">Language model</p>
           <h3>Understanding what you type</h3>
-          <p>Pick the engine at the top of the planner: <b>Local AI</b> (Qwen 2.5 3B through Ollama, so the text never leaves the laptop) or <b>Groq</b> (Llama 3.3 70B in the cloud). Both reply in a fixed JSON schema.</p>
+          <p>Pick the engine at the top of the planner: <b>Local AI</b> (Qwen 2.5 3B through Ollama, so the text never leaves the laptop) or <b>Groq</b> (gpt-oss-120b in the cloud). Both reply in a fixed JSON schema.</p>
           <p>Small models are bad at date arithmetic, so the model has to <em>quote</em> the student's words. Tempo's tested rules then work out the dates and check every quote against what was actually typed.</p>
         </article>
         <article class="ai-card">
@@ -169,7 +169,7 @@
       <div class="engines" role="table" aria-label="AI engine comparison">
         <div class="eg-row eg-head" role="row"><span role="columnheader">Engine</span><span role="columnheader">Runs on</span><span role="columnheader">Your text goes to</span><span role="columnheader">Speed</span></div>
         <div class="eg-row" role="row"><span role="cell"><b>Local AI</b><small>Qwen 2.5 3B · Ollama</small></span><span role="cell">This laptop's CPU</span><span role="cell">Nowhere</span><span role="cell">Slow: 30–90 s to read a week, ~20 s per coach answer (measured on our laptop CPU)</span></div>
-        <div class="eg-row" role="row"><span role="cell"><b>Groq</b><small>Llama 3.3 70B · free tier</small></span><span role="cell">Groq's cloud</span><span role="cell">Groq (Tempo stores nothing)</span><span role="cell">Fast</span></div>
+        <div class="eg-row" role="row"><span role="cell"><b>Groq</b><small>gpt-oss-120b · free tier</small></span><span role="cell">Groq's cloud</span><span role="cell">Groq (Tempo stores nothing)</span><span role="cell">Fast: ~3 s to read a week, &lt;1 s per coach answer (measured)</span></div>
         <div class="eg-row" role="row"><span role="cell"><b>Offline rules</b><small>Tempo's own parser</small></span><span role="cell">Your browser</span><span role="cell">Nowhere</span><span role="cell">Instant</span></div>
       </div>
     </section>
@@ -240,7 +240,7 @@
       <a href="app.html#plan">Planner</a><a href="app.html#add">Add to plan</a><a href="app.html#tasks">Tasks</a><a href="app.html#coach">Coach</a>
       <a href="#problem">Problem</a><a href="#ai">The AI</a><a href="#testing">Testing</a><a href="https://github.com/hexa3/tempo">GitHub</a><a href="#top">Back to top ↑</a>
     </nav>
-    <p class="muted">Made for the <em>AI for Student Life</em> competition. Built with Ollama and Qwen 2.5 (local AI), Groq and Llama 3.3 (cloud AI), and the Geist and Instrument Serif fonts. Demo data is made up, and no real student data is used.</p>
+    <p class="muted">Made for the <em>AI for Student Life</em> competition. Built with Ollama and Qwen 2.5 (local AI), Groq and OpenAI's gpt-oss-120b (cloud AI), and the Geist and Instrument Serif fonts. Demo data is made up, and no real student data is used.</p>
   </footer>
 
   <script src="js/dates.js"></script>

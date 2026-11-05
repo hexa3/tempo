@@ -588,7 +588,7 @@
     openDialog(`
       <h2>How Tempo uses AI, and its limits</h2>
       <div class="why small"><strong>What the AI does</strong><br>
-        1. <strong>Understands</strong> what you type and turns it into tasks. You pick the engine at the top: <em>Local AI</em> (Qwen 2.5 3B on this computer, private), <em>Groq</em> (Llama 3.3 70B online, fast) or the built-in <em>offline rules</em>. Tempo's own code then checks the AI's dates and quotes, and you review everything before it's added.<br>
+        1. <strong>Understands</strong> what you type and turns it into tasks. You pick the engine at the top: <em>Local AI</em> (Qwen 2.5 3B on this computer, private), <em>Groq</em> (gpt-oss-120b online, fast) or the built-in <em>offline rules</em>. Tempo's own code then checks the AI's dates and quotes, and you review everything before it's added.<br>
         2. <strong>Predicts</strong> how long tasks will really take <em>you</em>, learning from the times you log.<br>
         3. <strong>Plans</strong>: a scheduling algorithm on your device spreads exam prep, adds buffers, switches subjects, and re-plans whenever something changes.<br>
         4. <strong>Coaches</strong>: answers questions about your plan.</div>

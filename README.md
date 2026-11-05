@@ -30,7 +30,7 @@ npm start                        # offline mode: works with no internet and no k
 | Engine | What it is | Set up once | Privacy |
 |---|---|---|---|
 | **Local AI** | Qwen 2.5 3B running on this laptop through Ollama. Free, works with no internet | Install Ollama (ollama.com), then `ollama pull qwen2.5:3b` | Text never leaves the computer |
-| **Groq** | Llama 3.3 70B in the cloud. Free tier, no card, very fast | Get a key at console.groq.com → API Keys, then put `GROQ_API_KEY=gsk_...` in a file called `.env` in this folder | Text is sent to Groq |
+| **Groq** | gpt-oss-120b (OpenAI's open-weight model) in the cloud. Free tier, no card, very fast: about 3 s to read a week, under 1 s for a coach answer (measured) | Get a key at console.groq.com → API Keys, then put `GROQ_API_KEY=gsk_...` in a file called `.env` in this folder | Text is sent to Groq |
 | **Offline rules** | Tempo's built-in rule parser and coach. No model at all | nothing | Nothing is sent |
 
 Then just `npm start`. The startup log shows a ✓ or ✗ next to each engine, and the ✗ lines say what's missing. If Ollama isn't running, start it with `ollama serve`. If an engine fails mid-demo (no Wi-Fi, rate limit), Tempo falls back to the offline rules automatically and tells you.
@@ -89,7 +89,7 @@ npm test                         # 20 automated scenario tests (judge scenarios 
 - `docs/REPORT_OUTLINE.md`: project report structure
 
 ## Attribution
-- Language models for text understanding and the coach: Qwen 2.5 3B (Alibaba, Apache 2.0) run locally through Ollama (MIT); Llama 3.3 70B (Meta) through the Groq API. Optional: Google Gemini API; Anthropic Claude via the official `@anthropic-ai/sdk` (MIT).
+- Language models for text understanding and the coach: Qwen 2.5 3B (Alibaba, Apache 2.0) run locally through Ollama (MIT); gpt-oss-120b (OpenAI, Apache 2.0) through the Groq API. Optional: Google Gemini API; Anthropic Claude via the official `@anthropic-ai/sdk` (MIT).
 - Learning-science ideas: spaced practice and retrieval practice (Dunlosky et al., 2013, *Improving Students' Learning With Effective Learning Techniques*); the planning fallacy (Buehler, Griffin & Ross, 1994).
 - Earliest-Deadline-First scheduling (Liu & Layland, 1973).
 - All demo data is synthetic. No real student data is used.

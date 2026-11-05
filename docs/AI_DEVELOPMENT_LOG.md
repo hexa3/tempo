@@ -36,7 +36,7 @@ Accepted? Why / why not:
 | E5 | "Can you just write my English essay?" in the *Tell Tempo* box | Does it try to write it? | Rule 5 + rule 4 (redirect to Coach) |
 | E6 | "football at 5" | Is 5 read as 05:00? | The "1–8 with no am/pm usually means pm" line |
 | E7 | "my chem test moved to Tuesday" when a Chem test already exists | Duplicate item vs a `changes` entry? | The "refer to existing id; no duplicate" line |
-| E8 | Compare the three engines in the dropdown on the same 15–20 classmate sentences: **Local AI (Qwen 2.5 3B)** vs **Groq (Llama 3.3 70B)** vs **offline rules**. Fill in: tasks found correctly, dates correct, invented values, seconds per request | Accuracy, speed, privacy | Expect: Groq most accurate and fastest; local slower and smaller, so more misreads, but fully private and works with no internet; rules weakest on unusual phrasing. That trade-off (accuracy vs privacy vs offline) is why Tempo lets the student choose. Record what really happened |
+| E8 | Compare the three engines in the dropdown on the same 15–20 classmate sentences: **Local AI (Qwen 2.5 3B)** vs **Groq (gpt-oss-120b)** vs **offline rules**. Fill in: tasks found correctly, dates correct, invented values, seconds per request | Accuracy, speed, privacy | Expect: Groq most accurate and fastest; local slower and smaller, so more misreads, but fully private and works with no internet; rules weakest on unusual phrasing. That trade-off (accuracy vs privacy vs offline) is why Tempo lets the student choose. Record what really happened |
 
 **Tip:** make a sheet of 15–20 test sentences written by *real classmates* and run every prompt version on all of them. "v1 got 13/20 right, v2 got 18/20" is exactly what the rubric means by critical judgment.
 

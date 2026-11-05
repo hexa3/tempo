@@ -32,7 +32,7 @@ const OLLAMA_THREADS = Number(process.env.OLLAMA_THREADS) || Math.max(2, Math.fl
 
 const PROVIDERS = {
   local: { name: 'Local AI', kind: 'ollama', model: process.env.OLLAMA_MODEL || 'qwen2.5:3b', where: 'on this computer' },
-  groq: { name: 'Groq', kind: 'openai', key: 'GROQ_API_KEY', url: process.env.GROQ_URL || 'https://api.groq.com/openai/v1/chat/completions', model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile', where: 'online' },
+  groq: { name: 'Groq', kind: 'openai', key: 'GROQ_API_KEY', url: process.env.GROQ_URL || 'https://api.groq.com/openai/v1/chat/completions', model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b', where: 'online' },
   gemini: { name: 'Gemini', kind: 'openai', key: 'GEMINI_API_KEY', url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', model: process.env.GEMINI_MODEL || 'gemini-2.5-flash', where: 'online' },
   claude: { name: 'Claude', kind: 'claude', key: 'ANTHROPIC_API_KEY', model: process.env.CLAUDE_MODEL || 'claude-opus-5-5', where: 'online' },
 };
@@ -120,10 +120,13 @@ async function askOpenAICompatible(p, { system, user, schema, maxTokens }) {
   const sys = schema ? `${system}\n\nReply with ONLY a JSON object (no markdown, no explanation) matching this JSON schema:\n${JSON.stringify(schema)}` : system;
   const body = { model: p.model, max_tokens: maxTokens, temperature: schema ? 0 : 0.4,
     messages: [{ role: 'system', content: sys }, { role: 'user', content: user }],
-    ...(schema ? { response_format: { type: 'json_object' } } : {}) };
+    ...(schema ? { response_format: { type: 'json_object' } } : {}),
+    // gpt-oss models "think" before answering; low effort keeps replies fast and inside max_tokens
+    ...(/gpt-oss/.test(p.model) ? { reasoning_effort: 'low' } : {}) };
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env[p.key]}` };
   const call = (b) => fetch(p.url, { method: 'POST', headers, body: JSON.stringify(b), signal: AbortSignal.timeout(45000) });
   let res = await call(body);
+  if (res.status === 400 && body.reasoning_effort) { delete body.reasoning_effort; res = await call(body); } // provider doesn't know the option
   if (res.status === 400 && schema) { delete body.response_format; res = await call(body); } // some models lack JSON mode
   if (!res.ok) {
     const detail = (await res.text()).slice(0, 200);

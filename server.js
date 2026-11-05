@@ -162,6 +162,7 @@ const ASK = { claude: askClaude, openai: askOpenAICompatible, ollama: askOllama 
 function ask(id, o) {
   const p = Object.hasOwn(PROVIDERS, id) ? PROVIDERS[id] : null;
   if (!p) throw err('Unknown AI engine', 400);
+  if (p.kind === 'ollama' && HOSTED) throw err('Local AI only works when Tempo runs on your own computer (npm start). Online, use Groq or the offline rules.', 503);
   if (p.key && !process.env[p.key]) throw err(`${p.name} is not set up on the server (missing ${p.key}).`, 503);
   return ASK[p.kind](p, { maxTokens: 1500, ...o });
 }

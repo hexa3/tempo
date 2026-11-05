@@ -24,9 +24,15 @@
     </nav>
     <div class="topbar-actions">
       <a class="nav-link" href="https://github.com/hexa3/tempo" rel="noopener">GitHub</a>
-      <a class="btn primary small" href="app.html">Open the planner</a>
+      <a class="btn primary small" href="app.html#plan">Open the planner</a>
+      <button class="icon-btn menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menuPanel" aria-label="Open menu"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </header>
+  <nav class="menu-panel" id="menuPanel" aria-label="Sections" hidden>
+    <a href="#problem">01 · The problem</a><a href="#how">02 · How it works</a><a href="#ai">03 · The AI</a><a href="#testing">04 · Testing</a><a href="#responsible">05 · Responsible design</a>
+    <div class="menu-sep"></div>
+    <a href="app.html#plan"><b>Open the planner →</b></a><a href="app.html#add">Add your own week</a><a href="app.html#coach">Ask the coach</a><a href="https://github.com/hexa3/tempo">Code on GitHub</a>
+  </nav>
 
   <main id="top">
     <!-- ============ HERO ============ -->
@@ -36,7 +42,7 @@
         <h1 class="display">A week you can <em>actually</em> finish.</h1>
         <p class="hero-sub">Tell Tempo your week the way you'd text a friend. It learns how long work really takes <em>you</em>, spreads out your revision, keeps clear of practice and sleep, and tells you on day one when a week doesn't fit.</p>
         <div class="row hero-cta">
-          <a class="btn accent big" href="app.html">Open the planner <span aria-hidden="true">→</span></a>
+          <a class="btn accent big" href="app.html#plan">Open the planner <span aria-hidden="true">→</span></a>
           <a class="btn ghost big" href="#how">See how it works</a>
         </div>
         <ul class="hero-facts small">
@@ -105,6 +111,7 @@
           </div>
           <h3><span class="mono">1</span> Tell</h3>
           <p>Type or speak your week in plain words. An AI model pulls out the tasks, dates, estimates and activities.</p>
+          <a class="link-row" href="app.html#add">Try it in the planner →</a>
         </li>
         <li>
           <div class="step-art art-check">
@@ -120,6 +127,7 @@
           </div>
           <h3><span class="mono">3</span> Adapt</h3>
           <p>Log how long a session really took, change an exam date, or tap "low energy". Tempo re-plans straight away and tells you what moved.</p>
+          <a class="link-row" href="app.html#plan">See a live plan →</a>
         </li>
       </ol>
     </section>
@@ -219,7 +227,8 @@
       <h2 class="display">Try it on the judges' scenario.</h2>
       <p>Three assignments, two exams, two activities and two hours a day are already loaded. Then change something and watch it re-plan.</p>
       <div class="row" style="justify-content:center">
-        <a class="btn accent big" href="app.html">Open the planner <span aria-hidden="true">→</span></a>
+        <a class="btn accent big" href="app.html#plan">Open the planner <span aria-hidden="true">→</span></a>
+        <a class="btn ghost big" href="app.html#coach">Ask the coach</a>
         <a class="btn ghost big" href="https://github.com/hexa3/tempo">Read the code</a>
       </div>
     </section>
@@ -227,6 +236,10 @@
 
   <footer class="foot wrap small">
     <div class="brand"><img src="icon.svg" alt="" width="22" height="22"><span>Tempo</span></div>
+    <nav class="foot-links" aria-label="Footer">
+      <a href="app.html#plan">Planner</a><a href="app.html#add">Add to plan</a><a href="app.html#tasks">Tasks</a><a href="app.html#coach">Coach</a>
+      <a href="#problem">Problem</a><a href="#ai">The AI</a><a href="#testing">Testing</a><a href="https://github.com/hexa3/tempo">GitHub</a><a href="#top">Back to top ↑</a>
+    </nav>
     <p class="muted">Made for the <em>AI for Student Life</em> competition. Built with Ollama and Qwen 2.5 (local AI), Groq and Llama 3.3 (cloud AI), and the Geist and Instrument Serif fonts. Demo data is made up, and no real student data is used.</p>
   </footer>
 

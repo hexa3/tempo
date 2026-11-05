@@ -1,7 +1,7 @@
 # 5-minute presentation + judge playbook
 
 > Rehearse with a timer. Each person should be able to give **every** part, because judges ask anyone anything.
-> Before the event: put your free Groq key in `.env`, run `ollama serve` (if it isn't already running), then `npm start`. Check that the log shows ✓ for both Local AI and Groq. Send one request on Local AI before judging starts so the model is already loaded (the first one is slow). Click ⚙ → My data → "Delete everything" so the demo profiles regenerate with today's dates. Test on the venue Wi-Fi, and **also with Wi-Fi off** (offline mode is the backup).
+> Before the event: put your free Groq key in `.env`, run `ollama serve` (if it isn't already running), then `npm start`. Check that the log shows ✓ for both Local AI and Groq. Send one request on Local AI before judging starts so the model is already loaded (the first one is slow). Click **My time & settings** → My data → "Delete everything" so the demo profiles regenerate with today's dates. Test on the venue Wi-Fi, and **also with Wi-Fi off** (offline mode is the backup).
 
 ## Script (≈ 4:40, leaving buffer)
 
@@ -18,16 +18,16 @@
 ## Judge test playbook (Stage 3 & 4)
 
 **Stage 3 — "3 assignments, 2 exams, 2 extracurriculars, 2 hours a day."**
-Profile menu → **+ Load demo: busy week**. That profile *is* this scenario. Or type it live in the box (more impressive): *"Math worksheet due Thursday, English essay due Monday about 2 hours, history presentation due Friday, chem test Friday, bio quiz next Tuesday. Robotics Tue and Thu 4-5:30pm, football Mon and Wed 5-6:30. I only have 2 hours a day."*
+Profile dropdown (top right) → **+ Load demo: busy week**. That profile *is* this scenario. Or press **2** (or the **Add** tab) and type it live (more impressive): *"Math worksheet due Thursday, English essay due Monday about 2 hours, history presentation due Friday, chem test Friday, bio quiz next Tuesday. Robotics Tue and Thu 4-5:30pm, football Mon and Wed 5-6:30. I only have 2 hours a day."*
 
 | Judge does | You do | What they should see |
 |---|---|---|
-| 1. Change available time | ⚙ → drag a weekday slider, or −30/+30 in Today | Instant re-plan, toast "what changed", day loads respect the new limit |
-| 2. Add an urgent assignment | Type "physics lab report due tomorrow, 1 hour" → Add | It's scheduled today, other work moves, toast lists the changes |
+| 1. Change available time | **My time & settings** → drag a weekday slider, or −30/+30 on the Plan view | Instant re-plan, toast "what changed", day loads respect the new limit |
+| 2. Add an urgent assignment | **Add** tab → type "physics lab report due tomorrow, 1 hour" → Add to my plan (jumps back to Plan) | It's scheduled today, other work moves, toast lists the changes |
 | 3. Change an exam date | Type "chem test moved to next wednesday", or edit the task | Shown as a *change* (no duplicate). Prep spreads over the new window |
-| 4. Incomplete info | Type "I have a history essay and a math test" | Questions asked ("When is…?"), date fields highlighted, task listed as "Needs info" and not planned |
-| 5. Conflicting requirements | Load **exam crunch**, or add an activity overlapping another | Red "Doesn't fit" with checked options; overlap warning asks which activity wins |
-| 6. Unexpected question | Coach: "can you write my essay?", "I'm so stressed", "what's the capital of France?" | Integrity refusal, kind wellbeing reply with counselor, honest "I can only answer about your plan" |
+| 4. Incomplete info | Type "I have a history essay and a math test" | Questions asked ("When is…?"), date fields highlighted, task shown under "Needs your attention" on the Tasks view and not planned; the Tasks tab shows a badge |
+| 5. Conflicting requirements | Load **exam crunch**, or add an activity overlapping another | Red badge on the Plan tab, red "Doesn't fit" card with checked options; overlap warning asks which activity wins |
+| 6. Unexpected question | **Coach** tab (key 4): "can you write my essay?", "I'm so stressed", "what's the capital of France?" | Integrity refusal, kind wellbeing reply with counselor, honest "I can only answer about your plan" |
 | 7. New student profile | Profile → **+ New student…** | Empty, friendly start; no errors; history starts fresh (low-confidence estimates) |
 
 **Say this when they test limits:** "Notice it says *confidence: low* here. With no history it's using typical times. After about 5 logged sessions in a subject it becomes *high*."

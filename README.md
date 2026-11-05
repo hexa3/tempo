@@ -23,6 +23,8 @@ npm install
 npm start                        # offline mode: works with no internet and no key
 ```
 
+**The planner has four views**: *Plan* (today + the week), *Add to plan*, *Tasks & activities* and *Coach*. Use the sidebar on a laptop or the tab bar on a phone, or press 1–4 (press ? for all shortcuts). Each view has its own address (e.g. `app.html#coach`), so the browser's Back button works.
+
 **Two AI engines, switchable in the app** (dropdown at the top left, next to the logo):
 
 | Engine | What it is | Set up once | Privacy |

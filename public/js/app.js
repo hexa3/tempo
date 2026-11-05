@@ -50,7 +50,46 @@
   function mutate(fn) { fn(P()); save(); replan(true); }
 
   // ---------------- rendering ----------------
-  function render() { renderProfiles(); renderToday(); renderAlerts(); renderWeek(); renderTasks(); renderActs(); renderChat(); renderPill(); }
+  function render() { renderProfiles(); renderToday(); renderAlerts(); renderWeek(); renderTasks(); renderActs(); renderChat(); renderPill(); renderBadges(); }
+
+  // ---------------- navigation: four views, one URL each (#plan #add #tasks #coach) ----------------
+  const VIEWS = { plan: 'Plan', add: 'Add to plan', tasks: 'Tasks & activities', coach: 'Coach' };
+  let view = null;
+  function currentView() { const h = location.hash.slice(1); return VIEWS[h] ? h : 'plan'; }
+  function showView() {
+    const v = currentView();
+    if (v === view) return;
+    const first = view === null; view = v;
+    document.querySelectorAll('.view').forEach((el) => { el.hidden = el.dataset.view !== v; });
+    document.querySelectorAll('[data-nav]').forEach((a) => { if (a.dataset.nav === v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    document.title = `${VIEWS[v]} · Tempo`;
+    if (!first) {
+      window.scrollTo(0, 0);
+      // move focus to the new view's heading so keyboard and screen-reader users land in the right place
+      const target = (pendingFocus && $(pendingFocus)) || document.querySelector(`#h-${v}`);
+      if (target) target.focus({ preventScroll: true });
+    }
+    pendingFocus = null;
+    if (v === 'coach') { const c = $('#chat'); c.scrollTop = 1e6; }
+  }
+  let pendingFocus = null;
+  function go(v, focusEl) {
+    pendingFocus = focusEl || null;
+    if (location.hash !== '#' + v) { location.hash = v; showView(); } // switch now; the later hashchange is a no-op
+    else { if (focusEl) { const el = $(focusEl); el && el.focus(); } pendingFocus = null; }
+  }
+  function renderBadges() {
+    const risk = Object.values(plan.items).filter((r) => r.status === 'at-risk').length;
+    const p = P(), needInfo = p.items.filter((i) => !i.done && !plan.items[i.id]).length;
+    const set = (k, n, title) => document.querySelectorAll(`[data-badge="${k}"]`).forEach((b) => {
+      b.hidden = !n; b.textContent = n === true ? '' : String(n);
+      if (n) b.setAttribute('aria-label', title); else b.removeAttribute('aria-label');
+      b.setAttribute('role', 'status');
+    });
+    set('plan', risk, `${risk} task${risk === 1 ? '' : 's'} won't fit`);
+    set('tasks', needInfo, `${needInfo} task${needInfo === 1 ? '' : 's'} need a date`);
+    set('add', pending ? true : 0, 'Waiting for you to check');
+  }
 
   // ---------------- AI engine choice ----------------
   // 'local' (Ollama on this computer), 'groq' (online), … or 'offline' (built-in rules).
@@ -108,10 +147,12 @@
           <div style="min-width:0"><div class="eyebrow">Next up</div><div class="next-title">${esc(next.title)}</div>
             <div class="next-sub"><i style="background:${color(next.subject)}"></i>${esc(next.subject)} · ${esc(next.label)}</div></div>
           <button class="btn" data-sess="0:0">Open</button></div>`
-        : `<div class="next free"><div><div class="next-title">Nothing left for today.</div><div class="next-sub">${day.cap === 0 ? 'No study time is available for the rest of today.' : 'Rest, or get ahead with tomorrow\'s first session.'}</div></div></div>`}
+        : left === 0
+          ? `<div class="next free"><div><div class="next-title">Nothing planned yet.</div><div class="next-sub">Tell Tempo what's coming up and it will build your plan.</div></div><a class="btn primary" href="#add">Add your week →</a></div>`
+          : `<div class="next free"><div><div class="next-title">Nothing left for today.</div><div class="next-sub">${day.cap === 0 ? 'No study time is available for the rest of today.' : 'Rest, or get ahead with tomorrow\'s first session.'}</div></div></div>`}
       <div class="stats">
         <div class="stat"><div class="eyebrow">Planned today</div><b>${D.dur(day.used)} <small>of ${D.dur(day.cap)}</small></b><div class="meter" aria-hidden="true"><i style="width:${pct}%"></i></div></div>
-        <div class="stat"><div class="eyebrow">Work left</div><b>${D.dur(plan.stats.totalNeed)}</b><span class="small muted">${left} task${left === 1 ? '' : 's'}</span></div>
+        <div class="stat"><div class="eyebrow">Work left</div><b>${D.dur(plan.stats.totalNeed)}</b><a class="link-row" href="#tasks">${left} task${left === 1 ? '' : 's'} →</a></div>
         <div class="stat"><div class="eyebrow">Done today</div><b>${doneToday.length}</b><span class="small muted">session${doneToday.length === 1 ? '' : 's'} logged</span></div>
       </div>
       <div class="energy-row">
@@ -150,6 +191,8 @@
     const a = D.toDate(D.add(plan.today, start)), b = D.toDate(D.add(plan.today, start + 6));
     $('#weekLabel').textContent = a.getMonth() === b.getMonth() ? `${a.getDate()} – ${b.getDate()} ${MONTH_LONG[b.getMonth()]}` : `${a.getDate()} ${D.MONTHS[a.getMonth()]} – ${b.getDate()} ${D.MONTHS[b.getMonth()]}`;
     $('#weekPrev').disabled = weekOffset === 0;
+    $('#weekToday').disabled = weekOffset === 0;
+    $('#weekH').textContent = weekOffset === 0 ? 'This week' : weekOffset === 1 ? 'Next week' : `In ${weekOffset} weeks`;
     let html = '';
     for (let i = start; i < start + 7; i++) {
       const date = D.add(plan.today, i), day = plan.days[i];
@@ -176,16 +219,27 @@
     const open = p.items.filter((i) => !i.done).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1);
     const done = p.items.filter((i) => i.done);
     const statusText = { ok: 'On track', tight: 'Tight', 'at-risk': 'Won\'t fit' };
-    $('#taskList').innerHTML = (open.map((it) => {
+    const weekEnd = D.add(plan.today, 6);
+    const row = (it) => {
       const r = plan.items[it.id];
-      return `<li tabindex="0" role="button" data-item="${it.id}" aria-label="Edit ${esc(it.title)}">
+      return `<li class="row-btn" tabindex="0" role="button" data-item="${it.id}" aria-label="Edit ${esc(it.title)}">
         <span class="dot" style="background:${color(it.subject)}"></span>
         <div class="grow"><div class="t">${esc(it.title)}</div>
           <div class="meta">${it.due ? `${it.kind === 'exam' ? 'Exam' : 'Due'} ${esc(D.label(it.due))}` : '<strong>No date yet</strong>'}${r ? ` · ~${D.dur(r.predicted.minutes)}${it.progressMin ? `, ${D.dur(it.progressMin)} done` : ''}` : ''}</div></div>
-        ${r ? `<span class="tag ${r.status}">${statusText[r.status]}</span>` : `<span class="tag info">Needs info</span>`}
+        ${r ? `<span class="tag ${r.status}">${statusText[r.status]}</span>` : `<span class="tag tight">Needs a date</span>`}
+        <svg class="i chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
       </li>`;
-    }).join('') || '<li class="empty">No tasks yet. Tell Tempo about your week above.</li>') +
-      (done.length ? `<li class="foot">${ICON.check} ${done.length} finished</li>` : '');
+    };
+    const groups = [
+      ['Needs your attention', open.filter((i) => !plan.items[i.id] || plan.items[i.id].status === 'at-risk'), 'warn'],
+      ['Due in the next 7 days', open.filter((i) => plan.items[i.id] && plan.items[i.id].status !== 'at-risk' && i.due && i.due <= weekEnd), ''],
+      ['Later', open.filter((i) => plan.items[i.id] && plan.items[i.id].status !== 'at-risk' && (!i.due || i.due > weekEnd)), ''],
+    ].filter(([, list]) => list.length);
+    $('#taskList').innerHTML = (groups.map(([title, list, cls]) => `<div class="group-h ${cls}"><span>${title}</span><span>${list.length}</span></div><ul class="list">${list.map(row).join('')}</ul>`).join('') ||
+      '<p class="empty">No tasks yet. <a class="link-row" href="#add">Tell Tempo about your week →</a></p>') +
+      (done.length ? `<p class="small muted" style="margin:.9rem 0 0">${ICON.check} ${done.length} finished</p>` : '');
+    const n = open.length;
+    $('#tasksEyebrow').textContent = n ? `${n} open task${n === 1 ? '' : 's'} · ${p.commitments.length} activit${p.commitments.length === 1 ? 'y' : 'ies'}` : 'Everything Tempo is planning around';
   }
 
   function renderActs() {
@@ -273,7 +327,8 @@
         else { if (c.due) it.due = c.due; if (c.estMin) it.estMin = c.estMin; }
       });
     });
-    pending = null; $('#tellInput').value = ''; renderReview();
+    pending = null; $('#tellInput').value = ''; renderReview(); renderBadges();
+    go('plan');
     if (skipped.length) setTimeout(() => toast(`Didn't add ${skipped.map(esc).join(', ')}: pick which days it happens.`), 2500);
   }
 
@@ -298,8 +353,9 @@
     const fixed = pending.items.filter((i) => i.fixed).map((i) => `${i.title}: ${i.fixed}`);
     pending.note = [note, fixed.length ? `Tempo checked the AI's dates and corrected ${fixed.length}: ${fixed.join('; ')}` : ''].filter(Boolean).join('. ');
     btn.disabled = false; btn.textContent = 'Understand this';
-    renderReview();
-    $('#review').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    renderReview(); renderBadges();
+    const first = $('#review .review'); if (first) { first.setAttribute('tabindex', '-1'); first.focus({ preventScroll: true }); }
+    $('#review').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // ---------------- coach ----------------
@@ -339,7 +395,14 @@
 
   // ---------------- dialogs ----------------
   const dlg = $('#dlg'), body = $('#dlgBody');
-  function openDialog(html, bind) { body.innerHTML = html; bind && bind(body); dlg.showModal(); const f = body.querySelector('input,select,button'); f && f.focus(); }
+  function openDialog(html, bind) {
+    body.innerHTML = html + '<button type="button" class="icon-btn dlg-x" aria-label="Close"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>';
+    const h = body.querySelector('h2'); if (h) h.id = 'dlgTitle';
+    body.querySelector('.dlg-x').onclick = () => dlg.close();
+    bind && bind(body); dlg.showModal();
+    const f = body.querySelector('input:not([type=checkbox]),select,.actions .btn.primary,button'); f && f.focus();
+  }
+  dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); }); // click outside closes
   const close = () => dlg.close();
 
   function openSession(i, k) {
@@ -546,6 +609,23 @@
     });
   }
 
+  function openKeys() {
+    openDialog(`
+      <h2>Keyboard shortcuts</h2>
+      <dl class="keys">
+        <dt><kbd>1</kbd></dt><dd>Plan: today and this week</dd>
+        <dt><kbd>2</kbd> or <kbd>/</kbd></dt><dd>Add to plan (puts the cursor in the box)</dd>
+        <dt><kbd>3</kbd></dt><dd>Tasks &amp; activities</dd>
+        <dt><kbd>4</kbd></dt><dd>Coach</dd>
+        <dt><kbd>Ctrl</kbd> <kbd>Enter</kbd></dt><dd>Understand what you typed</dd>
+        <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next week (on the Plan view)</dd>
+        <dt><kbd>Esc</kbd></dt><dd>Close a window like this one</dd>
+        <dt><kbd>?</kbd></dt><dd>Show these shortcuts</dd>
+      </dl>
+      <p class="small muted">Shortcuts are ignored while you're typing. Tab moves between everything on the page, and the browser's Back button goes to the previous view.</p>
+      <div class="actions"><button type="button" class="btn primary" id="kDone">Got it</button></div>`, (b) => { b.querySelector('#kDone').onclick = close; });
+  }
+
   // ---------------- toast ----------------
   let toastTimer;
   function toast(html) {
@@ -569,18 +649,31 @@
     });
     $('#btnAddTask').onclick = () => openItem(null);
     $('#btnAddAct').onclick = () => openAct(null);
-    $('#btnSettings').onclick = openSettings;
-    $('#btnA11y').onclick = openA11y;
-    $('#btnAbout').onclick = openAbout;
-    $('#weekPrev').onclick = () => { weekOffset = Math.max(0, weekOffset - 1); renderWeek(); };
-    $('#weekNext').onclick = () => { weekOffset = Math.min(5, weekOffset + 1); renderWeek(); };
+    document.querySelectorAll('[data-new]').forEach((b) => (b.onclick = () => (b.dataset.new === 'task' ? openItem(null) : openAct(null))));
+    const OPEN = { settings: openSettings, a11y: openA11y, about: openAbout, keys: openKeys };
+    document.querySelectorAll('[data-open]').forEach((b) => (b.onclick = () => OPEN[b.dataset.open]()));
+    const week = (d) => { weekOffset = Math.min(5, Math.max(0, weekOffset + d)); renderWeek(); };
+    $('#weekPrev').onclick = () => week(-1);
+    $('#weekNext').onclick = () => week(1);
+    $('#weekToday').onclick = () => { weekOffset = 0; renderWeek(); };
+    window.addEventListener('hashchange', () => showView());
+    // the skip link must not change the hash (that would switch views)
+    document.querySelector('.skip').onclick = (e) => { e.preventDefault(); const h = document.querySelector(`#h-${view}`); (h || $('#main')).focus(); };
+    document.addEventListener('keydown', (e) => {
+      if (dlg.open || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input,textarea,select,[contenteditable]')) return;
+      const k = e.key;
+      if (k === '1') go('plan'); else if (k === '2') go('add', '#tellInput'); else if (k === '3') go('tasks'); else if (k === '4') go('coach', '#coachInput');
+      else if (k === '/') { e.preventDefault(); go('add', '#tellInput'); }
+      else if (k === '?') openKeys();
+      else if (view === 'plan' && (k === 'ArrowLeft' || k === 'ArrowRight') && !e.target.closest('.sess,button')) week(k === 'ArrowLeft' ? -1 : 1);
+    });
     $('#profileSelect').onchange = (e) => {
       const v = e.target.value;
       if (v === '__new') { const name = prompt('Nickname for the new student (no real name needed):', 'Student'); if (name) { const pr = Demo.blank(name.slice(0, 30)); store.profiles.push(pr); store.activeId = pr.id; } }
       else if (v === '__demo1') { const pr = Demo.busyWeek(); store.profiles.push(pr); store.activeId = pr.id; }
       else if (v === '__demo2') { const pr = Demo.overloaded(); store.profiles.push(pr); store.activeId = pr.id; }
       else store.activeId = v;
-      save(); prevPlan = null; pending = null; renderReview(); weekOffset = 0; replan(false);
+      save(); prevPlan = null; pending = null; renderReview(); weekOffset = 0; replan(false); go('plan');
     };
     document.addEventListener('click', (e) => {
       const t = e.target.closest('[data-sess],[data-item],[data-act],[data-energy],[data-today],[data-opt],[data-dismiss],[data-q]');
@@ -627,6 +720,6 @@
     renderPill();
   }
 
-  load(); applyPrefs(); wire(); replan(false); checkAI();
+  load(); applyPrefs(); wire(); replan(false); showView(); checkAI();
   window.addEventListener('focus', checkAI); // e.g. Ollama was started after the page opened
 })();

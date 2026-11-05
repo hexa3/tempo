@@ -59,4 +59,22 @@
   if (r) {
     $('#pvLearn').innerHTML = `<b>Live, from the demo student:</b> ${esc(r.predicted.why)} Likely range ${D.dur(r.predicted.low)}–${D.dur(r.predicted.high)}, confidence <b>${esc(r.predicted.confidence)}</b>.`;
   }
+
+  // ---- navigation: mobile menu + highlight the section you're reading ----
+  const btn = $('#menuBtn'), panel = $('#menuPanel');
+  const setMenu = (open) => { panel.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu'); };
+  btn.addEventListener('click', () => { setMenu(panel.hidden); if (!panel.hidden) panel.querySelector('a').focus(); });
+  panel.addEventListener('click', (e) => { if (e.target.closest('a')) setMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) { setMenu(false); btn.focus(); } });
+  window.addEventListener('resize', () => { if (window.innerWidth > 980) setMenu(false); });
+  const links = [...document.querySelectorAll('.hlinks a')];
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        links.forEach((a) => (a.getAttribute('href') === '#' + en.target.id ? a.setAttribute('aria-current', 'true') : a.removeAttribute('aria-current')));
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    document.querySelectorAll('section[id]').forEach((sec) => io.observe(sec));
+  }
 })();

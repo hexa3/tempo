@@ -307,6 +307,16 @@
       }
     }
     out.items.forEach((i) => { delete i._est; delete i._dueText; });
+    // "chem test got moved to Wednesday": a small model often lists this as a NEW exam.
+    // If the student used a moving word and the item matches one they already have, make it a date change.
+    if (source && /\b(mov(ed|ing|e)|postponed?|pushed|reschedul\w*|delayed|changed|now (on|due))\b/i.test(source)) {
+      out.items = out.items.filter((it) => {
+        const old = existing.find((e) => e.kind === it.kind && it.subject !== 'General' && String(e.subject || '').toLowerCase() === it.subject.toLowerCase());
+        if (!old || !it.due || it.due === old.due || !ids.has(old.id)) return true;
+        if (!(r.changes || []).some((c) => c && c.itemId === old.id)) (r.changes = r.changes || []).push({ itemId: old.id, due: it.due });
+        return false;
+      });
+    }
     let a = r.availability || {};
     if (source && typeof a.text === 'string' && a.text.trim() && !grounded(a.text, source)) a = {}; // invented
     if (Number(a.dailyMinutes) >= 0 && a.dailyMinutes !== null && a.dailyMinutes !== undefined) out.availability.dailyMinutes = Math.min(720, Math.round(Number(a.dailyMinutes)));

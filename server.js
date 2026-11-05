@@ -260,6 +260,7 @@ const server = http.createServer(async (req, res) => {
     // static files
     let file = path.normalize(path.join(PUBLIC, url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname)));
     if (!file.startsWith(PUBLIC)) return send(res, 403, { error: 'Forbidden' });
+    if (!path.extname(file) && fs.existsSync(file + '.html')) file += '.html'; // /app → app.html (same as Netlify)
     fs.readFile(file, (err, buf) => {
       if (err) { res.writeHead(404); return res.end('Not found'); }
       res.writeHead(200, { 'Content-Type': MIME[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });

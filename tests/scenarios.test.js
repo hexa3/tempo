@@ -218,3 +218,19 @@ test('Sanitizer checks AI "quotes" against what the student really typed', () =>
   const said = Parser.sanitize(ai, '2026-11-05', [], src + '. I only have 2 hours on weekdays');
   assert.equal(said.availability.dailyMinutes, 120);       // really said → applied
 });
+
+test('"Chem test moved to next Wednesday" becomes a date change even when the AI lists it as a new exam', () => {
+  // Found in the end-to-end test of the redesigned UI with qwen2.5:3b (Thu 5 Nov).
+  const existing = [{ id: 'chem1', title: 'Chemistry test (bonding)', subject: 'Chemistry', kind: 'exam', due: '2026-11-08' }];
+  const src = 'physics lab report due tomorrow about 1 hour, chem test moved to next wednesday';
+  const ai = { items: [
+    { kind: 'assignment', title: 'physics lab report', subject: 'Physics', dueText: 'tomorrow', due: '2026-11-06', estText: 'about 1 hour', estMin: 60, assumed: [] },
+    { kind: 'exam', title: 'Chemistry test', subject: 'Chemistry', dueText: 'next wednesday', due: '2026-11-11', estText: null, estMin: null, assumed: [] },
+  ], commitments: [], changes: [], questions: [] };
+  const r = Parser.sanitize(ai, '2026-11-05', existing, src);
+  assert.deepEqual(r.items.map((i) => i.title), ['physics lab report']);
+  assert.deepEqual(r.changes, [{ itemId: 'chem1', due: '2026-11-11' }]);
+  // without a "moved" word, a second chemistry exam is kept as new (the review screen asks about duplicates)
+  const r2 = Parser.sanitize(ai, '2026-11-05', existing, 'physics lab report due tomorrow, chem test next wednesday');
+  assert.equal(r2.items.length, 2);
+});

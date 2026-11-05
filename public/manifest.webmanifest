@@ -1,1 +1,1 @@
-{ "name": "Tempo — AI study planner", "short_name": "Tempo", "start_url": "/", "display": "standalone", "background_color": "#f7f7fb", "theme_color": "#4f46e5", "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }] }
+{ "name": "Tempo — study planner", "short_name": "Tempo", "start_url": "/app.html", "display": "standalone", "background_color": "#f5f2ea", "theme_color": "#1b1a17", "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }] }

@@ -6,7 +6,16 @@
   const $ = (s) => document.querySelector(s);
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const KEY = 'tempo.v1';
-  const PALETTE = ['#4f46e5', '#0d9488', '#d97706', '#db2777', '#2563eb', '#65a30d', '#9333ea', '#dc2626', '#0891b2'];
+  // muted, print-like subject colours that read on warm paper and in dark mode
+  const PALETTE = ['#c2410c', '#0f766e', '#a16207', '#9d174d', '#1d4ed8', '#4d7c0f', '#6d28d9', '#b91c1c', '#0e7490'];
+  const ICON = {
+    pin: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 21v-6M7 4h10l-1.5 5L18 13H6l2.5-4z"/></svg>',
+    check: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    ask: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.3M12 17v.5"/></svg>',
+    speak: '<svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10v4h4l5 4V6L8 10zM16.5 9a4 4 0 0 1 0 6M19 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
+  };
+  const MONTH_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const longDate = (s) => { const d = D.toDate(s); return `${D.DAY_LONG[d.getDay()][0].toUpperCase() + D.DAY_LONG[d.getDay()].slice(1)}, ${d.getDate()} ${MONTH_LONG[d.getMonth()]}`; };
   const color = (subject) => { let h = 0; for (const ch of String(subject || '')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return PALETTE[h % PALETTE.length]; };
 
   // ---------------- state ----------------
@@ -88,23 +97,36 @@
     const atRisk = Object.values(plan.items).filter((r) => r.status === 'at-risk').length;
     const doneToday = (p.log || []).filter((l) => l.date === plan.today);
     const pct = day.cap ? Math.min(100, Math.round((day.used / Math.max(day.cap, 1)) * 100)) : 0;
+    const left = Object.keys(plan.items).length;
     el.innerHTML = `
-      <div class="card-head"><h2 id="todayH">Today · ${esc(D.label(plan.today))}</h2><span class="tag ${atRisk ? 'at-risk' : 'ok'}">${atRisk ? `${atRisk} won't fit` : 'Everything fits'}</span></div>
-      <p class="muted small">${D.dur(plan.stats.totalNeed)} of work left across ${Object.keys(plan.items).length} task${Object.keys(plan.items).length === 1 ? '' : 's'}${doneToday.length ? ` · ✓ ${doneToday.length} session${doneToday.length > 1 ? 's' : ''} done today` : ''}.</p>
-      ${next ? `<div class="now"><div style="flex:1;min-width:0"><div class="small muted">Next up · ${D.clock(next.start)}</div>
-          <div class="big" style="color:${color(next.subject)}">${esc(next.title)}</div><div class="small">${esc(next.label)} · ${D.dur(next.min)}</div></div>
-          <div class="row"><button class="btn primary small" data-sess="0:0">Open</button></div></div>`
-        : `<div class="now"><div><div class="big">Nothing left today 🎉</div><div class="small muted">${day.cap === 0 ? 'No study time available for the rest of today.' : 'Rest, or get ahead using tomorrow\'s plan.'}</div></div></div>`}
-      <div class="small">Planned today: <strong>${D.dur(day.used)}</strong> of ${D.dur(day.cap)} available</div>
-      <div class="meter" aria-hidden="true"><i style="width:${pct}%"></i></div>
-      <p class="small" style="margin:.8rem 0 .3rem"><strong>How's your energy today?</strong> <span class="muted">Tempo adjusts today's load.</span></p>
-      <div class="energy" role="group" aria-label="Energy today">
-        <button class="btn small" data-energy="low" aria-pressed="${energy === 'low'}">😴 Low</button>
-        <button class="btn small" data-energy="ok" aria-pressed="${energy === 'ok'}">🙂 Normal</button>
-        <button class="btn small" data-energy="high" aria-pressed="${energy === 'high'}">⚡ High</button>
-        <button class="btn small ghost" data-today="-30">−30 min</button>
-        <button class="btn small ghost" data-today="30">+30 min</button>
-        <button class="btn small ghost" data-today="skip">Skip today</button>
+      <div class="today-top">
+        <div><h2 id="todayH">Today</h2><div class="display">${esc(longDate(plan.today))}</div></div>
+        <span class="tag ${atRisk ? 'at-risk' : 'ok'}">${atRisk ? `${atRisk} task${atRisk > 1 ? 's' : ''} won't fit` : 'Everything fits'}</span>
+      </div>
+      ${next ? `<div class="next">
+          <div class="next-time">${D.clock(next.start)}<small>${D.dur(next.min)}</small></div>
+          <div style="min-width:0"><div class="eyebrow">Next up</div><div class="next-title">${esc(next.title)}</div>
+            <div class="next-sub"><i style="background:${color(next.subject)}"></i>${esc(next.subject)} · ${esc(next.label)}</div></div>
+          <button class="btn" data-sess="0:0">Open</button></div>`
+        : `<div class="next free"><div><div class="next-title">Nothing left for today.</div><div class="next-sub">${day.cap === 0 ? 'No study time is available for the rest of today.' : 'Rest, or get ahead with tomorrow\'s first session.'}</div></div></div>`}
+      <div class="stats">
+        <div class="stat"><div class="eyebrow">Planned today</div><b>${D.dur(day.used)} <small>of ${D.dur(day.cap)}</small></b><div class="meter" aria-hidden="true"><i style="width:${pct}%"></i></div></div>
+        <div class="stat"><div class="eyebrow">Work left</div><b>${D.dur(plan.stats.totalNeed)}</b><span class="small muted">${left} task${left === 1 ? '' : 's'}</span></div>
+        <div class="stat"><div class="eyebrow">Done today</div><b>${doneToday.length}</b><span class="small muted">session${doneToday.length === 1 ? '' : 's'} logged</span></div>
+      </div>
+      <div class="energy-row">
+        <span class="label">Energy today</span>
+        <div class="seg" role="group" aria-label="Energy today">
+          <button class="btn small" data-energy="low" aria-pressed="${energy === 'low'}">Low</button>
+          <button class="btn small" data-energy="ok" aria-pressed="${energy === 'ok'}">Normal</button>
+          <button class="btn small" data-energy="high" aria-pressed="${energy === 'high'}">High</button>
+        </div>
+        <span class="spacer"></span>
+        <div class="seg" role="group" aria-label="Change today's study time">
+          <button class="btn small" data-today="-30">−30 min</button>
+          <button class="btn small" data-today="30">+30 min</button>
+          <button class="btn small" data-today="skip">Skip today</button>
+        </div>
       </div>`;
   }
 
@@ -118,14 +140,15 @@
         <div><strong class="k">${label[i.severity]}:</strong>${esc(i.message)}</div>
         <div class="row">${(i.options || []).map((o, k) => `<button class="btn small" data-opt="${n}:${k}">${esc(o.label)}</button>`).join('')}
           ${i.severity !== 'error' ? `<button class="btn small ghost" data-dismiss="${esc(issueKey(i))}">Dismiss</button>` : ''}</div>
-      </div>`).join('') + (list.some((i) => i.severity === 'error') ? '<p class="muted small" style="margin:-4px 0 10px">Tempo won\'t secretly drop work or squeeze it into your sleep. You choose the trade-off.</p>' : '');
+      </div>`).join('') + (list.some((i) => i.severity === 'error') ? '<p class="alert-foot">Tempo won\'t secretly drop work or squeeze it into your sleep. You choose the trade-off.</p>' : '');
     $('#alerts').dataset.n = '';
     $('#alerts')._issues = list;
   }
 
   function renderWeek() {
     const p = P(), start = weekOffset * 7;
-    $('#weekLabel').textContent = weekOffset === 0 ? 'Next 7 days' : `${D.label(D.add(plan.today, start))} →`;
+    const a = D.toDate(D.add(plan.today, start)), b = D.toDate(D.add(plan.today, start + 6));
+    $('#weekLabel').textContent = a.getMonth() === b.getMonth() ? `${a.getDate()} – ${b.getDate()} ${MONTH_LONG[b.getMonth()]}` : `${a.getDate()} ${D.MONTHS[a.getMonth()]} – ${b.getDate()} ${D.MONTHS[b.getMonth()]}`;
     $('#weekPrev').disabled = weekOffset === 0;
     let html = '';
     for (let i = start; i < start + 7; i++) {
@@ -134,13 +157,14 @@
       const logs = (p.log || []).filter((l) => l.date === date);
       const commits = day ? day.commitments : [];
       const items = [
-        ...commits.map((c) => ({ t: c.a, h: `<div class="commit">${D.clock(c.a)} ${esc(c.title)}</div>` })),
-        ...logs.map((l) => ({ t: l.start ?? 0, h: `<div class="sess done" style="--c:${color(l.subject)}"><span class="st">✓ ${esc(l.title)}</span><span class="sl">${D.dur(l.min)} done</span></div>` })),
-        ...(day ? day.sessions.map((s, k) => ({ t: s.start, h: `<button class="sess ${s.kind === 'exam' ? 'exam' : ''}" style="--c:${color(s.subject)}" data-sess="${i}:${k}" aria-label="${esc(`${D.clock(s.start)} ${s.title}, ${s.label}, ${D.dur(s.min)}. Open details`)}"><span class="sl">${D.clock(s.start)} · ${D.dur(s.min)}</span><span class="st">${esc(s.title)}</span><span class="sl">${esc(s.label)}</span></button>` })) : []),
+        ...commits.map((c) => ({ t: c.a, h: `<div class="commit"><span class="mono">${D.clock(c.a)}</span>${esc(c.title)}</div>` })),
+        ...logs.map((l) => ({ t: l.start ?? 0, h: `<div class="sess done" style="--c:${color(l.subject)}"><span class="tm">${ICON.check} ${D.dur(l.min)}</span><span class="st">${esc(l.title)}</span></div>` })),
+        ...(day ? day.sessions.map((s, k) => ({ t: s.start, h: `<button class="sess ${s.kind === 'exam' ? 'exam' : ''}" style="--c:${color(s.subject)}" data-sess="${i}:${k}" aria-label="${esc(`${D.clock(s.start)} ${s.title}, ${s.label}, ${D.dur(s.min)}. Open details`)}"><span class="tm"><span>${D.clock(s.start)}</span><span>${D.dur(s.min)}</span></span><span class="st">${esc(s.title)}</span><span class="sl">${esc(s.label)}</span></button>` })) : []),
       ].sort((a, b) => a.t - b.t).map((x) => x.h).join('');
       html += `<div class="day ${i === 0 ? 'is-today' : ''}" role="listitem" aria-label="${esc(D.label(date))}">
-        <div class="day-h"><span>${i === 0 ? 'Today' : esc(D.label(date))}</span><span class="load">${day && day.cap ? `${D.dur(day.used)}/${D.dur(day.cap)}` : ''}</span></div>
-        ${dues.map((it) => `<div class="due-flag">📌 ${it.kind === 'exam' ? 'Exam' : 'Due'}: ${esc(it.title)}</div>`).join('')}
+        <div class="day-h"><span class="dnum">${D.toDate(date).getDate()}</span><span class="dow">${i === 0 ? 'Today' : D.DAY_NAMES[D.dow(date)]}</span><span class="load" title="${day && day.cap ? `${D.dur(day.used)} planned of ${D.dur(day.cap)} available` : ''}">${day && day.cap ? D.dur(day.used).replace(' ', '') : ''}</span></div>
+        <div class="day-bar" aria-hidden="true"><i style="width:${day && day.cap ? Math.min(100, Math.round(day.used / day.cap * 100)) : 0}%"></i></div>
+        ${dues.map((it) => `<div class="due-flag">${ICON.pin}<span>${it.kind === 'exam' ? 'Exam' : 'Due'}: ${esc(it.title)}</span></div>`).join('')}
         ${items || '<div class="empty small">Free</div>'}
       </div>`;
     }
@@ -156,26 +180,26 @@
       const r = plan.items[it.id];
       return `<li tabindex="0" role="button" data-item="${it.id}" aria-label="Edit ${esc(it.title)}">
         <span class="dot" style="background:${color(it.subject)}"></span>
-        <div class="grow"><div class="t">${it.kind === 'exam' ? '📝 ' : ''}${esc(it.title)}</div>
-          <div class="small muted">${it.due ? `${it.kind === 'exam' ? 'Exam' : 'Due'} ${esc(D.label(it.due))}` : '<strong>No date yet</strong>'}${r ? ` · ~${D.dur(r.predicted.minutes)}${it.progressMin ? `, ${D.dur(it.progressMin)} done` : ''}` : ''}</div></div>
+        <div class="grow"><div class="t">${esc(it.title)}</div>
+          <div class="meta">${it.due ? `${it.kind === 'exam' ? 'Exam' : 'Due'} ${esc(D.label(it.due))}` : '<strong>No date yet</strong>'}${r ? ` · ~${D.dur(r.predicted.minutes)}${it.progressMin ? `, ${D.dur(it.progressMin)} done` : ''}` : ''}</div></div>
         ${r ? `<span class="tag ${r.status}">${statusText[r.status]}</span>` : `<span class="tag info">Needs info</span>`}
       </li>`;
-    }).join('') || '<li class="empty" style="border:0;cursor:default">No tasks yet. Tell Tempo about your week above ↑</li>') +
-      (done.length ? `<li class="small muted" style="border:0;cursor:default">✓ ${done.length} finished</li>` : '');
+    }).join('') || '<li class="empty">No tasks yet. Tell Tempo about your week above.</li>') +
+      (done.length ? `<li class="foot">${ICON.check} ${done.length} finished</li>` : '');
   }
 
   function renderActs() {
     const p = P();
     $('#actList').innerHTML = p.commitments.map((c) => `<li tabindex="0" role="button" data-act="${c.id}" aria-label="Edit ${esc(c.title)}">
-      <span class="dot" style="background:var(--act)"></span>
-      <div class="grow"><div class="t">${esc(c.title)}</div><div class="small muted">${c.date ? esc(D.label(c.date)) : c.days.map((d) => D.DAY_NAMES[d]).join(', ')} · ${D.clock(D.toMin(c.start))}–${D.clock(D.toMin(c.end))}</div></div>
-    </li>`).join('') || '<li class="empty" style="border:0;cursor:default">No activities. Add sports, clubs, a job…</li>';
+      <span class="act-dot"></span>
+      <div class="grow"><div class="t">${esc(c.title)}</div><div class="meta">${c.date ? esc(D.label(c.date)) : c.days.map((d) => D.DAY_NAMES[d]).join(', ')} · ${D.clock(D.toMin(c.start))}–${D.clock(D.toMin(c.end))}</div></div>
+    </li>`).join('') || '<li class="empty">No activities yet. Add sports, clubs or a job so Tempo plans around them.</li>';
   }
 
   function renderChat() {
     const msgs = chat[store.activeId] || [];
     $('#chat').innerHTML = msgs.map((m) => `<div class="msg ${m.me ? 'me' : 'bot'}">${esc(m.text)}${m.src ? `<span class="src">${esc(m.src)}</span>` : ''}</div>`).join('') ||
-      '<div class="msg bot">Hi! Ask me about your plan. I can explain why things are scheduled, what to do first, or whether you\'ll finish on time. I won\'t do your homework for you, but I\'ll help you plan it. <span class="src">Coach</span></div>';
+      '<div class="msg bot">Ask me about your plan: why something is scheduled, what to do first, or whether you\'ll finish on time. I won\'t do your homework, but I\'ll help you plan it.<span class="src">coach</span></div>';
     $('#chat').scrollTop = 1e6;
     $('#coachChips').innerHTML = ['What should I do first?', 'Will I finish everything?', 'Why is my next session there?', 'How long will my biggest task take?', 'I\'m stressed'].map((q) => `<button class="chip" type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('');
   }
@@ -190,11 +214,13 @@
     const dayBoxes = (days) => `<div class="days-pick">${D.DAY_NAMES.map((n, i) => `<label><input type="checkbox" data-day="${i}" ${days.includes(i) ? 'checked' : ''}>${n}</label>`).join('')}</div>`;
     const count = r.items.length + r.commitments.length + r.changes.length + (r.availability.dailyMinutes != null || r.availability.weekendMinutes != null ? 1 : 0);
     el.innerHTML = `<div class="review">
-      <div class="small"><strong>${count ? `I found ${count} thing${count > 1 ? 's' : ''}.` : 'Hmm.'}</strong> <span class="muted">Understood by ${esc(r.engine)}${r.note ? ` — ${esc(r.note)}` : ''}. Check them: AI can misread. <span class="tag assumed">yellow</span> = I guessed.</span></div>
-      ${r.questions.map((q) => `<div class="q">❓ ${esc(q)}</div>`).join('')}
+      <div class="review-head"><strong>${count ? `I found ${count} thing${count > 1 ? 's' : ''}. Check them.` : 'I couldn\'t find anything to plan.'}</strong>
+        <span class="small muted">Read by <strong style="color:var(--ink)">${esc(r.engine)}</strong>. AI can misread, so nothing is added until you say so. <span class="tag assumed plain">Yellow</span> means it guessed.</span>
+        ${r.note ? `<span class="note">${esc(r.note)}</span>` : ''}</div>
+      ${r.questions.map((q) => `<div class="q">${ICON.ask}<span>${esc(q)}</span></div>`).join('')}
       ${r.items.map((it, i) => { const dup = p.items.find((x) => !x.done && x.kind === it.kind && x.subject.toLowerCase() === it.subject.toLowerCase() && it.subject !== 'General'); return `<div class="rv" data-kind="item" data-i="${i}">
-        <div class="rv-head"><label class="small"><input type="checkbox" data-f="keep" ${dup ? '' : 'checked'} style="width:auto"> Add</label><span class="tag info">${it.kind === 'exam' ? 'Exam' : 'Task'}</span></div>
-        ${dup ? `<div class="q full">You already have "<strong>${esc(dup.title)}</strong>" (${esc(dup.due ? D.label(dup.due) : 'no date')}). Is this the same thing? I've left it unticked. Tick "Add" if it's different.</div>` : ''}
+        <div class="rv-head"><label><input type="checkbox" data-f="keep" ${dup ? '' : 'checked'}> Add this</label><span class="tag info plain">${it.kind === 'exam' ? 'Exam' : 'Task'}</span></div>
+        ${dup ? `<div class="q full">${ICON.ask}<span>You already have <strong>${esc(dup.title)}</strong> (${esc(dup.due ? D.label(dup.due) : 'no date')}). Is this the same thing? I've left it unticked. Tick "Add this" if it's different.</span></div>` : ''}
         <label class="full">Title<input data-f="title" value="${esc(it.title)}"></label>
         <label>Type${kindSel(it.kind)}</label>
         <label>Subject<input data-f="subject" value="${esc(it.subject)}" class="${as(it, 'subject')}"></label>
@@ -203,7 +229,7 @@
         <label class="full">Difficulty<select data-f="difficulty">${[1, 2, 3, 4, 5].map((d) => `<option value="${d}" ${(it.difficulty || 3) === d ? 'selected' : ''}>${d} — ${['very easy', 'easy', 'normal', 'hard', 'very hard'][d - 1]}</option>`).join('')}</select></label>
       </div>`; }).join('')}
       ${r.commitments.map((c, i) => `<div class="rv" data-kind="commit" data-i="${i}">
-        <div class="rv-head"><label class="small"><input type="checkbox" data-f="keep" checked style="width:auto"> Add</label><span class="tag info">Activity</span></div>
+        <div class="rv-head"><label><input type="checkbox" data-f="keep" checked> Add this</label><span class="tag info plain">Activity</span></div>
         <label class="full">Activity<input data-f="title" value="${esc(c.title)}"></label>
         <div class="full ${as(c, 'days')}" style="border-radius:8px">${c.date ? `<label>One-off date<input type="date" data-f="date" value="${esc(c.date)}"></label>` : dayBoxes(c.days)}</div>
         <label>Starts<input type="time" data-f="start" value="${esc(c.start)}" class="${as(c, 'time')}"></label>
@@ -260,9 +286,12 @@
     let raw, note = '';
     const e = engine();
     if (e) {
-      if (e.id === 'local') btn.textContent = 'Local AI is thinking…';
+      const t0 = Date.now(), label = e.id === 'local' ? 'Local AI is reading' : `${e.name} is reading`;
+      const tick = () => { btn.textContent = `${label}… ${Math.round((Date.now() - t0) / 1000)}s`; };
+      tick(); const timer = setInterval(tick, 1000);
       try { raw = await callAI('/api/parse', { text, today, weekday: D.DAY_LONG[D.dow(today)], existing }); }
-      catch (err) { note = `${e.name} was unavailable (${err.message}), used offline rules instead`; }
+      catch (err) { note = `${e.name} was unavailable (${err.message}), so the offline rules read it instead`; }
+      finally { clearInterval(timer); }
     }
     if (!raw) raw = Parser.parseRules(text, today, existing);
     pending = Parser.sanitize(raw, today, existing, text);
@@ -282,7 +311,7 @@
     const e = engine(), g = Coach.guard(q);
     if (g) { answer = g; src = 'Tempo safety rule · same answer on every AI engine'; }
     else if (e) {
-      msgs.push({ text: e.id === 'local' ? 'Thinking (local AI, can take ~30 s)…' : 'Thinking…' }); renderChat();
+      msgs.push({ text: e.id === 'local' ? 'Thinking on this computer. This can take up to a minute…' : 'Thinking…' }); renderChat();
       try {
         answer = (await callAI('/api/coach', { question: q, context: Coach.buildContext(P(), plan, { compact: e.id === 'local' }) })).answer;
         src = `${e.name}${e.id === 'local' ? ' on this computer' : ''} · based on your plan · can make mistakes`;
@@ -316,11 +345,12 @@
   function openSession(i, k) {
     const s = plan.days[i].sessions[k], it = P().items.find((x) => x.id === s.itemId), r = plan.items[s.itemId];
     openDialog(`
-      <h2 style="color:${color(s.subject)}">${esc(s.title)}</h2>
-      <div class="small muted">${esc(D.label(s.date))} · ${D.clock(s.start)}–${D.clock(s.end)} · ${esc(s.label)}</div>
+      <div class="eyebrow" style="color:${color(s.subject)}">${esc(s.subject)} · ${esc(s.label)}</div>
+      <h2>${esc(s.title)}</h2>
+      <div class="sess-meta">${esc(D.label(s.date))} · ${D.clock(s.start)}–${D.clock(s.end)} · ${D.dur(s.min)}</div>
       <div class="why"><strong>Why this session is here</strong><br>${esc(s.why)}</div>
       ${r ? `<div class="small conf">Total estimate: <strong>${D.dur(r.predicted.minutes)}</strong> (likely ${D.dur(r.predicted.low)}–${D.dur(r.predicted.high)}) · confidence: <strong>${r.predicted.confidence}</strong>. It's a prediction, not a fact.</div>` : ''}
-      <fieldset style="border:1px solid var(--line);border-radius:10px"><legend class="small">Did it? How long did it really take?</legend>
+      <fieldset><legend>Did it? How long did it really take?</legend>
         <div class="row"><input type="number" id="actual" value="${s.min}" min="5" max="600" step="5" style="width:6rem" aria-label="Minutes it took"> <span class="small">minutes</span>
         <button type="button" class="btn small ghost" data-adj="-10">−10</button><button type="button" class="btn small ghost" data-adj="10">+10</button></div>
         <p class="small muted" style="margin:.4rem 0 0">This teaches Tempo how long ${esc(s.subject)} really takes <em>you</em>.</p>
@@ -329,7 +359,7 @@
         ${i === 0 ? '<button type="button" class="btn ghost" id="sSkip">Can\'t do it today</button>' : ''}
         <button type="button" class="btn ghost" id="sEdit">Edit task</button>
         <button type="button" class="btn ghost" id="sClose">Close</button>
-        <button type="button" class="btn primary" id="sDone">✓ Done</button>
+        <button type="button" class="btn primary" id="sDone">${ICON.check} Mark done</button>
       </div>`, (b) => {
       b.querySelectorAll('[data-adj]').forEach((x) => x.onclick = () => { const a = b.querySelector('#actual'); a.value = Math.max(5, Number(a.value) + Number(x.dataset.adj)); });
       b.querySelector('#sClose').onclick = close;
@@ -471,11 +501,11 @@
       <h2>Accessibility</h2>
       <label>Text size<select id="xFs">${[['s', 'Small'], ['m', 'Normal'], ['l', 'Large'], ['xl', 'Extra large']].map(([v, n]) => `<option value="${v}" ${(pr.fs || 'm') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
       <label>Theme<select id="xTheme">${[['auto', 'Match my device'], ['light', 'Light'], ['dark', 'Dark']].map(([v, n]) => `<option value="${v}" ${(pr.theme || 'auto') === v ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
-      <label style="flex-direction:row;gap:.5rem;color:var(--ink)"><input type="checkbox" id="xContrast" style="width:auto" ${pr.contrast ? 'checked' : ''}> High contrast</label>
-      <label style="flex-direction:row;gap:.5rem;color:var(--ink)"><input type="checkbox" id="xRead" style="width:auto" ${pr.readable ? 'checked' : ''}> Extra letter &amp; line spacing (can help with dyslexia)</label>
-      <label style="flex-direction:row;gap:.5rem;color:var(--ink)"><input type="checkbox" id="xMotion" style="width:auto" ${pr.motion === 'off' ? 'checked' : ''}> Reduce motion</label>
-      <button type="button" class="btn" id="xSpeak">🔊 Read today's plan aloud</button>
-      <p class="small muted">Everything works with a keyboard (Tab / Enter), and colours always have a text label too. You can also speak instead of typing with the 🎤 button (Chrome, Edge, Safari).</p>
+      <label class="check"><input type="checkbox" id="xContrast" ${pr.contrast ? 'checked' : ''}> High contrast</label>
+      <label class="check"><input type="checkbox" id="xRead" ${pr.readable ? 'checked' : ''}> Extra letter &amp; line spacing (can help with dyslexia)</label>
+      <label class="check"><input type="checkbox" id="xMotion" ${pr.motion === 'off' ? 'checked' : ''}> Reduce motion</label>
+      <button type="button" class="btn" id="xSpeak">${ICON.speak} Read today's plan aloud</button>
+      <p class="small muted">Everything works with a keyboard (Tab / Enter), and colours always have a text label too. You can also speak instead of typing with the microphone button (Chrome, Edge, Safari).</p>
       <div class="actions"><button type="button" class="btn primary" id="xDone">Done</button></div>`, (b) => {
       const upd = () => { Object.assign(pr, { fs: b.querySelector('#xFs').value, theme: b.querySelector('#xTheme').value, contrast: b.querySelector('#xContrast').checked, readable: b.querySelector('#xRead').checked, motion: b.querySelector('#xMotion').checked ? 'off' : 'on' }); applyPrefs(); save(); };
       b.querySelectorAll('select,input').forEach((x) => (x.onchange = upd));
@@ -495,7 +525,7 @@
     openDialog(`
       <h2>How Tempo uses AI, and its limits</h2>
       <div class="why small"><strong>What the AI does</strong><br>
-        1. <strong>Understands</strong> what you type and turns it into tasks (an online AI model such as Gemini, Groq or Claude when available, built-in rules offline). You review everything before it's added.<br>
+        1. <strong>Understands</strong> what you type and turns it into tasks. You pick the engine at the top: <em>Local AI</em> (Qwen 2.5 3B on this computer, private), <em>Groq</em> (Llama 3.3 70B online, fast) or the built-in <em>offline rules</em>. Tempo's own code then checks the AI's dates and quotes, and you review everything before it's added.<br>
         2. <strong>Predicts</strong> how long tasks will really take <em>you</em>, learning from the times you log.<br>
         3. <strong>Plans</strong>: a scheduling algorithm on your device spreads exam prep, adds buffers, switches subjects, and re-plans whenever something changes.<br>
         4. <strong>Coaches</strong>: answers questions about your plan.</div>
@@ -508,8 +538,8 @@
       <div class="why small"><strong>Privacy</strong><br>
         • No account, no real name, no email. Everything is stored only in this browser.<br>
         • Only the text you choose to send (and a summary of your plan for coach questions) goes to the AI. The server does not store it.<br>
-        • Download or delete your data any time in ⚙ Settings → My data.</div>
-      <label style="flex-direction:row;gap:.5rem;color:var(--ink)"><input type="checkbox" id="oOff" style="width:auto" ${store.prefs.offlineOnly ? 'checked' : ''}> Never send my text to an online AI (only Local AI or offline rules)</label>
+        • Download or delete your data any time in Settings → My data.</div>
+      <label class="check"><input type="checkbox" id="oOff" ${store.prefs.offlineOnly ? 'checked' : ''}> Never send my text to an online AI (only Local AI or offline rules)</label>
       <div class="actions"><button type="button" class="btn primary" id="oDone">Done</button></div>`, (b) => {
       b.querySelector('#oOff').onchange = (e) => { store.prefs.offlineOnly = e.target.checked; save(); renderPill(); };
       b.querySelector('#oDone').onclick = close;

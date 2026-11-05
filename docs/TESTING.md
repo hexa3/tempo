@@ -1,6 +1,6 @@
 # Testing & improvement
 
-Run `npm test`. There are 19 automated tests covering the judges' scenarios plus every bug below. Every plan is also checked against *invariants*: no day over budget, no overlap with activities, nothing outside the sleep-protecting window, nothing after its deadline.
+Run `npm test`. There are 20 automated tests covering the judges' scenarios plus every bug below. Every plan is also checked against *invariants*: no day over budget, no overlap with activities, nothing outside the sleep-protecting window, nothing after its deadline.
 
 ## Problem → Test → Change → Result
 
@@ -44,6 +44,11 @@ Use **one** of these in the presentation and keep the others for Q&A.
 - **Testing:** we saved the exact reply as a test (*"Sanitizer checks AI quotes…"*).
 - **Change:** the model must copy the student's own words for dates and estimates, and Tempo's tested rules work out the actual dates. Then every "quote" is checked against what the student really typed. Invented quotes are dropped, a phrase used once can only belong to one task, and an activity can't also be a task.
 - **Result:** Fri 13, Mon 9, the estimate stays on the essay only, robotics appears once, and the availability change isn't applied. **Lesson:** a small model is useful for reading messy text, but its output has to be checked by code you can test.
+
+### 8. "Chem test moved to Wednesday" became a second chem test
+- **Problem:** in an end-to-end test of the redesigned app with the local model, *"chem test moved to next wednesday"* came back as a **new** exam. The duplicate check caught it and left it unticked, but the student would have had to fix it by hand.
+- **Change:** if the student uses a moving word (moved, postponed, rescheduled…) and the AI's item matches a task they already have (same subject and type), Tempo turns it into a date change.
+- **Result:** the review now shows *"Chemistry test (bonding): move to Wed 11 Nov"*. Locked in by the test *"Chem test moved to next Wednesday becomes a date change…"*. Without a moving word, a second chemistry exam is still treated as new.
 
 ## User testing (do this with real students; it's the strongest evidence you can have)
 

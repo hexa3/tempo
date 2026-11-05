@@ -33,14 +33,14 @@ npm start                        # offline mode: works with no internet and no k
 
 Then just `npm start`. The startup log shows a ✓ or ✗ next to each engine, and the ✗ lines say what's missing. If Ollama isn't running, start it with `ollama serve`. If an engine fails mid-demo (no Wi-Fi, rate limit), Tempo falls back to the offline rules automatically and tells you.
 
-- **Speed:** Groq answers in about a second. The local model runs on the CPU, so it's slow: understanding a one-sentence week took **87 s** on our 12-thread laptop CPU (measured), and coach answers are shorter and faster. For a live demo, use Groq and keep Local AI for the privacy point. It's capped at half the CPU cores (`OLLAMA_THREADS`) so the laptop stays usable. The first request after starting is slower because the model loads into memory first.
+- **Speed:** Groq answers in about a second. The local model runs on the CPU, so it's slow: reading a one-sentence week took **30–87 s** on our 12-thread laptop CPU, and a coach answer took about **20 s** (measured through the real UI). The button counts the seconds so it never looks frozen. For a live demo, use Groq and keep Local AI for the privacy point. It's capped at half the CPU cores (`OLLAMA_THREADS`) so the laptop stays usable. The first request after starting is slower because the model loads into memory first.
 - **Why Qwen 2.5 3B?** It's small enough (about 2 GB) for a school laptop with no GPU, and it's good at producing structured JSON. Tempo also uses Ollama's schema-constrained output, so the reply is always valid JSON. Use `OLLAMA_MODEL=llama3.2:3b` (or any model you've pulled) to compare.
 - **Optional extras:** Gemini (`GEMINI_API_KEY`, free tier) and Claude (`ANTHROPIC_API_KEY`, paid) also appear in the dropdown when their key is set. `GROQ_MODEL` and `GEMINI_MODEL` change the cloud model if a default has been retired.
 
-Open http://localhost:3000 in Chrome, Firefox, Safari or Edge, on a laptop or a phone on the same Wi-Fi. Demo profiles load automatically.
+Open http://localhost:3000 (home page) or http://localhost:3000/app.html (the planner) in Chrome, Firefox, Safari or Edge, on a laptop or a phone on the same Wi-Fi. Demo profiles load automatically.
 
 ```bash
-npm test                         # 19 automated scenario tests (judge scenarios + bugs we fixed)
+npm test                         # 20 automated scenario tests (judge scenarios + bugs we fixed)
 ```
 
 ## Online version (Netlify)

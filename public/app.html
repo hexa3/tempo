@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tempo · Planner</title>
+  <meta name="description" content="Tempo turns a messy week into a realistic study plan that adapts to how you actually work.">
+  <meta name="theme-color" content="#f5f2ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#14130f" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&family=Instrument+Serif:ital@0;1&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to plan</a>
+  <header class="topbar">
+    <a class="brand" href="./" title="Tempo home"><img src="icon.svg" alt="" width="28" height="28"><span>Tempo</span></a>
+    <label class="engine" id="aiPill" title="Which AI understands your text and answers the coach"><span class="dot" aria-hidden="true"></span><span class="sr-only">AI engine</span><select id="aiEngine" aria-label="AI engine"></select></label>
+    <div class="topbar-actions">
+      <a class="nav-link" href="./#how">How it works</a>
+      <label class="sr-only" for="profileSelect">Student profile</label>
+      <select id="profileSelect" aria-label="Student profile"></select>
+      <button class="icon-btn" id="btnA11y" aria-label="Accessibility options" title="Accessibility"><span class="serif" aria-hidden="true">Aa</span></button>
+      <button class="icon-btn" id="btnSettings" aria-label="My time and settings" title="My time &amp; settings"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></button>
+      <button class="icon-btn" id="btnAbout" aria-label="How Tempo uses AI, privacy and limits" title="AI, privacy &amp; limits"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.5"/></svg></button>
+    </div>
+  </header>
+
+  <main id="main" class="layout">
+    <section class="col-left">
+      <article class="card" id="tellCard" aria-labelledby="tellH">
+        <h2 id="tellH">Tell Tempo about your week</h2>
+        <p class="lede">What's coming up?</p>
+        <p class="muted small" style="margin:0 0 .9rem">Type it like you'd text a friend. Tempo pulls out the tasks, and <strong style="color:var(--ink)">you check them before anything is added.</strong></p>
+        <div class="input-wrap">
+          <label class="sr-only" for="tellInput">Your week, in your own words</label>
+          <textarea id="tellInput" rows="5" placeholder="Chem test Thursday, English essay due Monday (about 3 hours, it's hard). Robotics Tue and Thu 4–6pm. I only have 2 hours a day."></textarea>
+          <button class="icon-btn mic" id="btnMic" aria-label="Speak instead of typing" title="Speak" hidden><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+        </div>
+        <div class="row">
+          <button class="btn primary" id="btnParse">Understand this</button>
+          <button class="btn ghost small" id="btnExample">Try an example</button>
+          <span class="muted small" style="margin-left:auto"><span class="kbd">Ctrl</span> <span class="kbd">Enter</span></span>
+        </div>
+        <div id="review" aria-live="polite"></div>
+      </article>
+
+      <article class="card" id="tasksCard" aria-labelledby="tasksH">
+        <div class="card-head"><h2 id="tasksH">Tasks &amp; exams</h2><button class="btn ghost small" id="btnAddTask">+ Add</button></div>
+        <ul id="taskList" class="list"></ul>
+      </article>
+
+      <article class="card" id="actsCard" aria-labelledby="actH">
+        <div class="card-head"><h2 id="actH">Activities</h2><button class="btn ghost small" id="btnAddAct">+ Add</button></div>
+        <ul id="actList" class="list"></ul>
+      </article>
+    </section>
+
+    <section class="col-main">
+      <article class="card today" id="todayCard" aria-labelledby="todayH"></article>
+      <div id="alerts" aria-live="polite"></div>
+      <article class="card" id="weekCard" aria-labelledby="weekH">
+        <div class="card-head">
+          <div><h2 id="weekH">Your plan</h2><div class="lede" id="weekLabel" style="margin:0"></div></div>
+          <div class="row tight">
+            <button class="icon-btn" id="weekPrev" aria-label="Previous week"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+            <button class="icon-btn" id="weekNext" aria-label="Next week"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+        <div id="week" class="week" role="list"></div>
+        <p class="muted small legend"><span><span class="sw" style="background:color-mix(in srgb,var(--ink) 12%,var(--card));border-left:3px solid var(--ink)"></span>Study session: tap it to see <strong style="color:var(--ink)">why</strong> it's there</span><span><span class="sw" style="background:repeating-linear-gradient(135deg,var(--act-soft) 0 3px,transparent 3px 6px);border:1px dashed var(--line-2)"></span>Your activities</span><span style="color:var(--brand);font-weight:600">● Deadline</span></p>
+      </article>
+
+      <article class="card" id="coachCard" aria-labelledby="coachH">
+        <h2 id="coachH">Ask the coach</h2>
+        <div id="chat" class="chat" aria-live="polite"></div>
+        <form id="coachForm" class="row">
+          <label class="sr-only" for="coachInput">Ask a question about your plan</label>
+          <input id="coachInput" placeholder="What should I do first? Why is Chem on Tuesday?" autocomplete="off">
+          <button class="btn primary" type="submit">Ask</button>
+        </form>
+        <div class="chips" id="coachChips"></div>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog id="dlg"><form method="dialog" id="dlgBody"></form></dialog>
+
+  <script src="js/dates.js"></script>
+  <script src="js/predictor.js"></script>
+  <script src="js/scheduler.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/coach.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

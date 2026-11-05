@@ -3,93 +3,237 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tempo — AI study planner</title>
-  <meta name="description" content="Tempo turns a messy week into a realistic study plan that adapts to how you actually work.">
-  <meta name="theme-color" content="#4f46e5">
+  <title>Tempo · A week you can finish</title>
+  <meta name="description" content="Tempo is an AI study planner for high-school students. Type your week like a text message; Tempo learns how long work really takes you, plans around practice and sleep, and tells you when a week doesn't fit.">
+  <meta name="theme-color" content="#f5f2ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#14130f" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&family=Instrument+Serif:ital@0;1&display=swap">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="home.css">
 </head>
-<body>
-  <a class="skip" href="#main">Skip to plan</a>
-  <header class="topbar">
-    <div class="brand"><img src="icon.svg" alt="" width="28" height="28"><span>Tempo</span></div>
-    <label class="engine" id="aiPill" title="Which AI understands your text and answers the coach"><span class="dot" aria-hidden="true"></span><span class="sr-only">AI engine</span><select id="aiEngine" aria-label="AI engine"></select></label>
+<body class="home">
+  <a class="skip" href="#top">Skip to content</a>
+  <header class="topbar hnav">
+    <a class="brand" href="./"><img src="icon.svg" alt="" width="28" height="28"><span>Tempo</span></a>
+    <nav class="hlinks" aria-label="Sections">
+      <a href="#problem">Problem</a><a href="#how">How it works</a><a href="#ai">The AI</a><a href="#testing">Testing</a><a href="#responsible">Responsibility</a>
+    </nav>
     <div class="topbar-actions">
-      <label class="sr-only" for="profileSelect">Student profile</label>
-      <select id="profileSelect" aria-label="Student profile"></select>
-      <button class="icon-btn" id="btnA11y" aria-label="Accessibility options" title="Accessibility">Aa</button>
-      <button class="icon-btn" id="btnSettings" aria-label="Settings" title="My time &amp; settings">⚙</button>
-      <button class="icon-btn" id="btnAbout" aria-label="About, privacy and AI limits" title="Privacy &amp; AI limits">?</button>
+      <a class="nav-link" href="https://github.com/hexa3/tempo" rel="noopener">GitHub</a>
+      <a class="btn primary small" href="app.html">Open the planner</a>
     </div>
   </header>
 
-  <main id="main" class="layout">
-    <section class="col-left">
-      <article class="card" id="tellCard" aria-labelledby="tellH">
-        <h2 id="tellH">Tell Tempo about your week</h2>
-        <p class="muted small">Type it like you'd text a friend. Tempo pulls out the tasks; <strong>you check them before anything is added.</strong></p>
-        <div class="input-wrap">
-          <textarea id="tellInput" rows="5" placeholder="e.g. Chem test Thursday, English essay due Monday (about 3 hours, it's hard). Robotics Tue and Thu 4-6pm. I only have 2 hours a day."></textarea>
-          <button class="icon-btn mic" id="btnMic" aria-label="Speak instead of typing" title="Speak" hidden>🎤</button>
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">AI for Student Life · a study planner for high school</p>
+        <h1 class="display">A week you can <em>actually</em> finish.</h1>
+        <p class="hero-sub">Tell Tempo your week the way you'd text a friend. It learns how long work really takes <em>you</em>, spreads out your revision, keeps clear of practice and sleep, and tells you on day one when a week doesn't fit.</p>
+        <div class="row hero-cta">
+          <a class="btn accent big" href="app.html">Open the planner <span aria-hidden="true">→</span></a>
+          <a class="btn ghost big" href="#how">See how it works</a>
         </div>
-        <div class="row">
-          <button class="btn primary" id="btnParse">Understand this</button>
-          <button class="btn ghost small" id="btnExample">Try an example</button>
+        <ul class="hero-facts small">
+          <li>Free, no account</li><li>Works offline</li><li>Private local AI option</li>
+        </ul>
+      </div>
+
+      <figure class="preview" aria-labelledby="pvCap">
+        <div class="pv-head">
+          <div><span class="live"><i></i>Live</span> <span id="pvCap" class="small">The real planner, in your browser</span></div>
+          <span class="mono small muted" id="pvRange"></span>
         </div>
-        <div id="review" aria-live="polite"></div>
-      </article>
-
-      <article class="card" aria-labelledby="tasksH">
-        <div class="card-head"><h2 id="tasksH">Tasks &amp; exams</h2><button class="btn ghost small" id="btnAddTask">+ Add</button></div>
-        <ul id="taskList" class="list"></ul>
-      </article>
-
-      <article class="card" aria-labelledby="actH">
-        <div class="card-head"><h2 id="actH">Activities</h2><button class="btn ghost small" id="btnAddAct">+ Add</button></div>
-        <ul id="actList" class="list"></ul>
-      </article>
+        <div class="pv-scenario small">3 assignments · 2 exams · robotics + football · <label for="pvSlider">study time per day</label>
+          <output id="pvOut" class="mono">2h</output></div>
+        <input type="range" id="pvSlider" min="45" max="180" step="15" value="120" aria-describedby="pvStatus">
+        <div class="pv-week" id="pvWeek" aria-hidden="true"></div>
+        <div class="pv-status" id="pvStatus" role="status" aria-live="polite"></div>
+        <figcaption class="small muted">Drag the slider. Below about 1h 30m a day, Tempo stops pretending and shows which tasks don't fit.</figcaption>
+      </figure>
     </section>
 
-    <section class="col-main">
-      <article class="card today" id="todayCard" aria-labelledby="todayH"></article>
-      <div id="alerts" aria-live="polite"></div>
-      <article class="card" aria-labelledby="weekH">
-        <div class="card-head">
-          <h2 id="weekH">Your plan</h2>
-          <div class="row tight">
-            <button class="icon-btn" id="weekPrev" aria-label="Previous week">‹</button>
-            <span id="weekLabel" class="muted small"></span>
-            <button class="icon-btn" id="weekNext" aria-label="Next week">›</button>
-          </div>
-        </div>
-        <div id="week" class="week" role="list"></div>
-        <p class="muted small legend">Tap a session to see <strong>why</strong> it's there, or to mark it done. Grey = your activities.</p>
-      </article>
+    <!-- ============ STRIP ============ -->
+    <section class="strip wrap" aria-label="Key facts">
+      <div><b>3</b><span>AI engines you can switch between: local, cloud, or none</span></div>
+      <div><b>20</b><span>automated tests, covering the judges' scenarios and every bug we fixed</span></div>
+      <div><b>0</b><span>accounts, emails or real names. Data stays in your browser</span></div>
+      <div><b>1 tap</b><span>to tell Tempo you're tired. Today's load halves and it shows what moved</span></div>
+    </section>
 
-      <article class="card" id="coachCard" aria-labelledby="coachH">
-        <h2 id="coachH">Ask the coach</h2>
-        <div id="chat" class="chat" aria-live="polite"></div>
-        <form id="coachForm" class="row">
-          <label class="sr-only" for="coachInput">Ask a question about your plan</label>
-          <input id="coachInput" placeholder="What should I do first? Why is Chem on Tuesday?" autocomplete="off">
-          <button class="btn primary" type="submit">Ask</button>
-        </form>
-        <div class="chips" id="coachChips"></div>
-      </article>
+    <!-- ============ PROBLEM ============ -->
+    <section class="sect wrap" id="problem">
+      <div class="sect-head">
+        <p class="num">01 · The problem</p>
+        <h2 class="display">Planners store your week.<br>None of them tell you if it <em>fits</em>.</h2>
+      </div>
+      <div class="cols3">
+        <article>
+          <h3>We underestimate.</h3>
+          <p>People reliably predict tasks will take less time than they do. Psychologists call it the <em>planning fallacy</em> (Buehler, Griffin &amp; Ross, 1994).</p>
+          <p class="fix"><span>Tempo</span> learns your personal time multiplier per subject from the sessions you log.</p>
+        </article>
+        <article>
+          <h3>We cram.</h3>
+          <p>Spreading study over several days beats one long session the night before (Cepeda et al., 2006), but cramming is what usually happens.</p>
+          <p class="fix"><span>Tempo</span> splits exam prep across days: overview, active recall, then a practice test.</p>
+        </article>
+        <article>
+          <h3>We find out too late.</h3>
+          <p>An impossible week looks fine on Monday. You only discover it on Wednesday night, when there are no good options left.</p>
+          <p class="fix"><span>Tempo</span> spots it on day one and offers options it has already checked: more time, an extension, or a focused version.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ HOW ============ -->
+    <section class="sect wrap" id="how">
+      <div class="sect-head">
+        <p class="num">02 · How it works</p>
+        <h2 class="display">Type it. Check it.<br>Let the plan keep up with you.</h2>
+      </div>
+      <ol class="steps">
+        <li>
+          <div class="step-art art-tell">
+            <p>"<mark class="m-s">chem test</mark> <mark class="m-d">next friday</mark>, <mark class="m-s">english essay</mark> due <mark class="m-d">monday</mark> <mark class="m-t">about 2 hours</mark>, <mark class="m-a">robotics tue and thu 4–5:30</mark>"</p>
+            <div class="legend-mini small"><span class="m-s">task</span><span class="m-d">date</span><span class="m-t">estimate</span><span class="m-a">activity</span></div>
+          </div>
+          <h3><span class="mono">1</span> Tell</h3>
+          <p>Type or speak your week in plain words. An AI model pulls out the tasks, dates, estimates and activities.</p>
+        </li>
+        <li>
+          <div class="step-art art-check">
+            <div class="mini-rv"><div><b>Chemistry test</b><span>Exam</span></div><div class="f guess">Fri 13 Nov</div><div class="f">no estimate, Tempo will predict</div></div>
+            <div class="mini-q"><b>?</b> "Next Friday" can mean two dates. Is Fri 13 Nov right?</div>
+          </div>
+          <h3><span class="mono">2</span> Check</h3>
+          <p>Nothing is added until you confirm. Guesses are marked in yellow, and missing details turn into questions instead of made-up values.</p>
+        </li>
+        <li>
+          <div class="step-art art-adapt">
+            <div class="mini-toast"><b>Re-planned.</b> What changed:<ul><li>Physics lab report added today, 1h</li><li>History presentation part 2 moved to Sat</li></ul></div>
+          </div>
+          <h3><span class="mono">3</span> Adapt</h3>
+          <p>Log how long a session really took, change an exam date, or tap "low energy". Tempo re-plans straight away and tells you what moved.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============ AI ============ -->
+    <section class="sect wrap" id="ai">
+      <div class="sect-head">
+        <p class="num">03 · The AI</p>
+        <h2 class="display">Three jobs, and the right<br>kind of AI for each.</h2>
+      </div>
+      <div class="ai-grid">
+        <article class="ai-card">
+          <p class="tag-k">Language model</p>
+          <h3>Understanding what you type</h3>
+          <p>Pick the engine at the top of the planner: <b>Local AI</b> (Qwen 2.5 3B through Ollama, so the text never leaves the laptop) or <b>Groq</b> (Llama 3.3 70B in the cloud). Both reply in a fixed JSON schema.</p>
+          <p>Small models are bad at date arithmetic, so the model has to <em>quote</em> the student's words. Tempo's tested rules then work out the dates and check every quote against what was actually typed.</p>
+        </article>
+        <article class="ai-card">
+          <p class="tag-k">Statistical model</p>
+          <h3>Predicting how long things take <em>you</em></h3>
+          <div class="formula" aria-label="m equals e to the power of, sum of log ratios plus k times log m zero, over n plus k">
+            <span>m</span> = exp<span class="frac"><span>Σ ln r<sub>i</sub> + k · ln m<sub>0</sub></span><span>n + k</span></span>
+          </div>
+          <p class="small muted">r = actual ÷ planned minutes for each logged session · m<sub>0</sub> = your overall habit · k = 3</p>
+          <p id="pvLearn">With no data Tempo uses typical times. Each logged session pulls the estimate toward reality, and the range narrows as it learns.</p>
+        </article>
+        <article class="ai-card">
+          <p class="tag-k">Planning algorithm</p>
+          <h3>Building a plan that never breaks the rules</h3>
+          <p>Earliest-deadline-first with a slack test, spaced exam prep, a safety buffer before deadlines, subject switching, and a sleep window it never crosses.</p>
+          <p>When a week can't fit, it tries each option and only offers the ones that really work.</p>
+        </article>
+      </div>
+      <aside class="callout">
+        <p class="display">Why not let a chatbot write the schedule?</p>
+        <p>A plan must never double-book you, run past your bedtime, or quietly drop work. A language model can't promise that. An algorithm can, and our tests check it on every plan. So the AI reads and explains, and the algorithm schedules.</p>
+      </aside>
+
+      <div class="engines" role="table" aria-label="AI engine comparison">
+        <div class="eg-row eg-head" role="row"><span role="columnheader">Engine</span><span role="columnheader">Runs on</span><span role="columnheader">Your text goes to</span><span role="columnheader">Speed</span></div>
+        <div class="eg-row" role="row"><span role="cell"><b>Local AI</b><small>Qwen 2.5 3B · Ollama</small></span><span role="cell">This laptop's CPU</span><span role="cell">Nowhere</span><span role="cell">Slow: 30–90 s to read a week, ~20 s per coach answer (measured on our laptop CPU)</span></div>
+        <div class="eg-row" role="row"><span role="cell"><b>Groq</b><small>Llama 3.3 70B · free tier</small></span><span role="cell">Groq's cloud</span><span role="cell">Groq (Tempo stores nothing)</span><span role="cell">Fast</span></div>
+        <div class="eg-row" role="row"><span role="cell"><b>Offline rules</b><small>Tempo's own parser</small></span><span role="cell">Your browser</span><span role="cell">Nowhere</span><span role="cell">Instant</span></div>
+      </div>
+    </section>
+
+    <!-- ============ TESTING ============ -->
+    <section class="sect wrap" id="testing">
+      <div class="sect-head">
+        <p class="num">04 · Testing &amp; improvement</p>
+        <h2 class="display">We tested it, and it broke.<br>Here's one of those times.</h2>
+      </div>
+      <p class="lead">We typed <span class="mono quote">chem test next friday, english essay due monday about 2 hours, robotics tue and thu 4-5:30</span> into the local model on Thursday 5 November.</p>
+      <div class="before-after">
+        <div class="ba ba-bad">
+          <p class="tag-k">What the 3B model returned</p>
+          <ul>
+            <li><s>Chemistry test: Wed 18 Nov</s> <em>"next Friday" isn't a Wednesday</em></li>
+            <li><s>English essay: Tue 10 Nov</s> <em>Monday is the 9th</em></li>
+            <li><s>Chemistry test: about 2 hours</s> <em>that was the essay's estimate</em></li>
+            <li><s>Task: "Robotics practice"</s> <em>it's an activity, not homework</em></li>
+            <li><s>"I only have 2 hours on weekdays"</s> <em>the student never said this</em></li>
+          </ul>
+        </div>
+        <div class="ba ba-good">
+          <p class="tag-k">What the student sees after Tempo's checks</p>
+          <ul>
+            <li>Chemistry test: <b>Fri 13 Nov</b> <em>date corrected, flagged for confirmation</em></li>
+            <li>English essay: <b>Mon 9 Nov, 2h</b></li>
+            <li>Chemistry test: <b>no estimate</b> <em>Tempo will predict one</em></li>
+            <li>Robotics: <b>Tue &amp; Thu 4:00–5:30pm</b>, once, as an activity</li>
+            <li>Study time: <b>unchanged</b></li>
+          </ul>
+        </div>
+      </div>
+      <p class="small muted lesson">The fix: every phrase the AI claims to quote must actually appear in what the student typed, and code we can test does the date maths. This exact model reply is now an automated test. <a href="https://github.com/hexa3/tempo/blob/main/docs/TESTING.md">Read all eight stories →</a></p>
+    </section>
+
+    <!-- ============ RESPONSIBLE ============ -->
+    <section class="sect wrap" id="responsible">
+      <div class="sect-head">
+        <p class="num">05 · Responsible design</p>
+        <h2 class="display">Built for students,<br>not for engagement.</h2>
+      </div>
+      <div class="resp">
+        <article><h3>Private by default</h3><p>A nickname, not a name. Everything is stored in the browser, the server keeps no logs of what students type, and there's a switch that never sends text online.</p></article>
+        <article><h3>It won't do your homework</h3><p>"Write my essay" gets a refusal and an offer to plan it instead. The same rule runs before every AI engine.</p></article>
+        <article><h3>Kind when it's hard</h3><p>A low-energy check-in lightens the day, and crunch weeks are flagged. Stress gets a kind reply that points to a counsellor or a trusted adult.</p></article>
+        <article><h3>Honest about limits</h3><p>Every estimate shows a range and a confidence level. Every session explains why it's there. A week that doesn't fit is never hidden.</p></article>
+        <article><h3>You stay in charge</h3><p>The student confirms every task the AI extracts, and picks the trade-off when a week is too full.</p></article>
+        <article><h3>Accessible</h3><p>Works with just a keyboard, plus large text, high contrast, extra spacing for dyslexia, dark mode, reduced motion, voice input and read-aloud.</p></article>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="final wrap">
+      <h2 class="display">Try it on the judges' scenario.</h2>
+      <p>Three assignments, two exams, two activities and two hours a day are already loaded. Then change something and watch it re-plan.</p>
+      <div class="row" style="justify-content:center">
+        <a class="btn accent big" href="app.html">Open the planner <span aria-hidden="true">→</span></a>
+        <a class="btn ghost big" href="https://github.com/hexa3/tempo">Read the code</a>
+      </div>
     </section>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-
-  <dialog id="dlg"><form method="dialog" id="dlgBody"></form></dialog>
+  <footer class="foot wrap small">
+    <div class="brand"><img src="icon.svg" alt="" width="22" height="22"><span>Tempo</span></div>
+    <p class="muted">Made for the <em>AI for Student Life</em> competition. Built with Ollama and Qwen 2.5 (local AI), Groq and Llama 3.3 (cloud AI), and the Geist and Instrument Serif fonts. Demo data is made up, and no real student data is used.</p>
+  </footer>
 
   <script src="js/dates.js"></script>
   <script src="js/predictor.js"></script>
   <script src="js/scheduler.js"></script>
-  <script src="js/parser.js"></script>
   <script src="js/demo.js"></script>
-  <script src="js/coach.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/home.js"></script>
 </body>
 </html>

@@ -337,3 +337,7 @@ dialog .actions { display: flex; gap: .5rem; justify-content: flex-end; flex-wra
   :root:not([data-motion="off"]) .toast { animation: rise .25s ease-out; }
 }
 @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+/* Netlify adds a "Powered by Netlify" badge on the hosted site. On phones it sat on top of
+   the Coach tab, so keep it visible but lift it above the tab bar. */
+@media (max-width: 900px) { body.app #nl-badge-frame { bottom: calc(84px + env(safe-area-inset-bottom)) !important; } }
